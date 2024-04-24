@@ -5,17 +5,12 @@ import { is } from '@electron-toolkit/utils'
 import icon from '../../resources/icon.png?asset'
 import * as net from 'net'
 import * as OSC from 'node-osc'
+import { MD } from './decoder'
 
+const md = new MD()
 const oscClient = new OSC.Client('127.0.0.1', 57121)
-
 // アプリケーションのパス確認
 console.log(app.getAppPath())
-
-// OSCメッセージ送信の関数
-function sendOscMessage(address: string, ...args: OSC.ArgumentType[]) {
-  const oscMessage = new OSC.Message(address, ...args)
-  oscClient.send(oscMessage)
-}
 
 // センサークライアントを作成する関数
 function createSensorClient() {
@@ -36,7 +31,7 @@ function createSensorClient() {
      */
     const type = 'MD'
     const start = '0000'
-    const end = '0001'
+    const end = '1080'
     const grouping = '00'
     const skips = '0'
     const scans = '00'
@@ -45,17 +40,13 @@ function createSensorClient() {
 
   // センサーからデータを受信した時の処理
   client.on('data', (rawData) => {
-    const decodeBuffer = decorder.decode(rawData)
-    const decodeBufferLines = decodeBuffer.split('\n').slice(3) // データを改行で分割し、最初の3行をスキップ
-    const decodeSensorData = decodeBufferLines.map((decodeBufferLine) => {
-      // console.log(decodeBufferLine)
-      return decodeSensorData(decodeBufferLine, 3)
-    })
+    const decodedBuffer = decorder.decode(rawData)
+    const decodedSensorDatas = md.getDistances(decodedBuffer)
 
-    console.log(decodeSensorData)
+    console.log(decodedSensorDatas)
     console.log('-------------------')
 
-    // sendOscMessage('/sensor/distance', decodeSensorData)
+    // return sendOscMessage('/sensor/distance', decodedSensorDatas)
   })
 
   client.on('close', () => {
@@ -69,15 +60,10 @@ function createSensorClient() {
   return client
 }
 
-// センサーデータのデコード処理
-function decodeSensorData(code: string, byte: number): number {
-  let value = 0
-  for (let i = 0; i < byte; ++i) {
-    value <<= 6
-    value &= ~0x3f
-    value |= code.charCodeAt(i) - 0x30
-  }
-  return value
+// OSCメッセージ送信の関数
+function sendOscMessage(address: string, ...args: OSC.ArgumentType[]) {
+  const oscMessage = new OSC.Message(address, ...args)
+  oscClient.send(oscMessage)
 }
 
 // ウィンドウを作成する関数
