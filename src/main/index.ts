@@ -19,10 +19,12 @@ function sendOscMessage(address: string, ...args: OSC.ArgumentType[]) {
 
 // センサーデータのデコードトライ
 function decodeSensorData(encodedString: string): number {
-  const characters = encodedString.split('')
-  const decodedValues = characters.map((char) => char.charCodeAt(0) - 0x30)
-  const binaryString = decodedValues.map((val) => val.toString(2).padStart(6, '0')).join('')
-  return parseInt(binaryString, 2)
+  // const characters = encodedString.split('')
+  // const decodedValues = characters.map((char) => char.charCodeAt(0) - 0x30)
+  // const binaryString = decodedValues.map((val) => val.toString(2).padStart(6, '0')).join('')
+  // return parseInt(binaryString, 2)
+  console.log(encodedString)
+  return 1
 }
 
 // センサークライアントを作成する関数
@@ -42,14 +44,9 @@ function createSensorClient() {
     const dataString = data.toString()
     const dataList = dataString.split('\n')
     dataList.forEach((line) => {
+      console.log(line)
       if (line.startsWith('GD')) {
-        const parts = line.split(' ')
-        const distanceData = parts[1]
-        // センサーデータをデコードしてログに出力
-        const distance = decodeSensorData(distanceData)
-        console.log(`Distance: ${distance} mm`)
-        // 受信したセンサーデータをOSCメッセージとして送信
-        sendOscMessage('/sensor/distance', distance)
+        sendOscMessage('/sensor/distance', line)
       }
     })
   })
