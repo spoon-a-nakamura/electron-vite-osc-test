@@ -34,6 +34,25 @@ code {
   margin-bottom: 80px;
 }
 
+.data_section {
+  margin: 50px auto;
+  width: 100%;
+  p {
+    font-size: 15px;
+    text-align: center;
+    margin: 10px auto;
+    font-weight: bold;
+  }
+
+}
+.data_display {
+  background: #000;
+  padding: 50px;
+  width: 100%;
+  color: aquamarine;
+  font-size: 20px;
+}
+
 .logo {
   margin-bottom: 20px;
   -webkit-user-drag: none;

@@ -1,10 +1,72 @@
+/* eslint-disable @typescript-eslint/explicit-function-return-type */
 import { app, shell, BrowserWindow, ipcMain } from 'electron'
 import { join } from 'path'
-import { electronApp, optimizer, is } from '@electron-toolkit/utils'
+import { is } from '@electron-toolkit/utils'
 import icon from '../../resources/icon.png?asset'
+import * as net from 'net'
+import * as OSC from 'node-osc'
 
+const oscClient = new OSC.Client('127.0.0.1', 57121)
+
+// アプリケーションのパス確認
+console.log(app.getAppPath())
+
+// OSCメッセージ送信の関数
+function sendOscMessage(address: string, ...args: OSC.ArgumentType[]) {
+  const oscMessage = new OSC.Message(address, ...args)
+  oscClient.send(oscMessage)
+}
+
+// センサーデータのデコードトライ
+function decodeSensorData(encodedString: string): number {
+  const characters = encodedString.split('')
+  const decodedValues = characters.map((char) => char.charCodeAt(0) - 0x30)
+  const binaryString = decodedValues.map((val) => val.toString(2).padStart(6, '0')).join('')
+  return parseInt(binaryString, 2)
+}
+
+// センサークライアントを作成する関数
+function createSensorClient() {
+  const client = new net.Socket()
+  const sensorIP = '198.168.5.10'
+  const port = 10940
+
+  client.connect({ port: port, host: sensorIP }, () => {
+    console.log('Sensor Connected')
+    // センサーにデータ取得要求を送信（これで合っているのだろうか……）
+    client.write('GD0000010000\n')
+  })
+
+  // センサーからデータを受信した時の処理
+  client.on('data', (data) => {
+    const dataString = data.toString()
+    const dataList = dataString.split('\n')
+    dataList.forEach((line) => {
+      if (line.startsWith('GD')) {
+        const parts = line.split(' ')
+        const distanceData = parts[1]
+        // センサーデータをデコードしてログに出力
+        const distance = decodeSensorData(distanceData)
+        console.log(`Distance: ${distance} mm`)
+        // 受信したセンサーデータをOSCメッセージとして送信
+        sendOscMessage('/sensor/distance', distance)
+      }
+    })
+  })
+
+  client.on('close', () => {
+    console.log('Connection closed')
+  })
+
+  client.on('error', (err) => {
+    console.error('Connection error:', err)
+  })
+
+  return client
+}
+
+// ウィンドウを作成する関数
 function createWindow(): void {
-  // Create the browser window.
   const mainWindow = new BrowserWindow({
     width: 900,
     height: 670,
@@ -17,58 +79,45 @@ function createWindow(): void {
     }
   })
 
+  mainWindow.webContents.openDevTools()
+
   mainWindow.on('ready-to-show', () => {
     mainWindow.show()
   })
 
+  // 外部ウィンドウのリンクを許可しない設定
   mainWindow.webContents.setWindowOpenHandler((details) => {
     shell.openExternal(details.url)
     return { action: 'deny' }
   })
 
-  // HMR for renderer base on electron-vite cli.
-  // Load the remote URL for development or the local html file for production.
+  // 開発用のURLを読み込むか、本番用のファイルを読み込む（このprocess.envは.envファイルで定義する、、？）
   if (is.dev && process.env['ELECTRON_RENDERER_URL']) {
     mainWindow.loadURL(process.env['ELECTRON_RENDERER_URL'])
   } else {
     mainWindow.loadFile(join(__dirname, '../renderer/index.html'))
   }
+
+  const sensorClient = createSensorClient()
+
+  mainWindow.on('closed', () => {
+    sensorClient.destroy() // センサークライアントの破棄
+  })
 }
 
-// This method will be called when Electron has finished
-// initialization and is ready to create browser windows.
-// Some APIs can only be used after this event occurs.
+// アプリケーションの準備ができたらウィンドウを作成する
 app.whenReady().then(() => {
-  // Set app user model id for windows
-  electronApp.setAppUserModelId('com.electron')
-
-  // Default open or close DevTools by F12 in development
-  // and ignore CommandOrControl + R in production.
-  // see https://github.com/alex8088/electron-toolkit/tree/master/packages/utils
-  app.on('browser-window-created', (_, window) => {
-    optimizer.watchWindowShortcuts(window)
-  })
-
-  // IPC test
-  ipcMain.on('ping', () => console.log('pong'))
-
   createWindow()
-
-  app.on('activate', function () {
-    // On macOS it's common to re-create a window in the app when the
-    // dock icon is clicked and there are no other windows open.
-    if (BrowserWindow.getAllWindows().length === 0) createWindow()
-  })
 })
 
-// Quit when all windows are closed, except on macOS. There, it's common
-// for applications and their menu bar to stay active until the user quits
-// explicitly with Cmd + Q.
+// 全ウィンドウが閉じられたらプロセスを閉じる
 app.on('window-all-closed', () => {
   if (process.platform !== 'darwin') {
     app.quit()
   }
 })
 
-// In this file you can include the rest of your app"s specific main process
-// code. You can also put them in separate files and require them here.
+// レンダラーに送りたいが、ここもよく分からない
+ipcMain.on('requestData', (event) => {
+  event.sender.send('responseData', { data: 'hogehoge' })
+})
