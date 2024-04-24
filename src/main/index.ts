@@ -28,7 +28,7 @@ function decodeSensorData(encodedString: string): number {
 // センサークライアントを作成する関数
 function createSensorClient() {
   const client = new net.Socket()
-  const sensorIP = '198.168.5.10'
+  const sensorIP = '192.168.5.10'
   const port = 10940
 
   client.connect({ port: port, host: sensorIP }, () => {
@@ -97,7 +97,6 @@ function createWindow(): void {
   } else {
     mainWindow.loadFile(join(__dirname, '../renderer/index.html'))
   }
-
   const sensorClient = createSensorClient()
 
   mainWindow.on('closed', () => {
