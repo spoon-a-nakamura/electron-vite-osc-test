@@ -17,33 +17,45 @@ function sendOscMessage(address: string, ...args: OSC.ArgumentType[]) {
   oscClient.send(oscMessage)
 }
 
-// センサーデータのデコードトライ
-function decodeSensorData(encodedString: string): number {
-  // const characters = encodedString.split('')
-  // const decodedValues = characters.map((char) => char.charCodeAt(0) - 0x30)
-  // const binaryString = decodedValues.map((val) => val.toString(2).padStart(6, '0')).join('')
-  // return parseInt(binaryString, 2)
-  console.log(encodedString)
-  return 1
-}
-
 // センサークライアントを作成する関数
 function createSensorClient() {
   const client = new net.Socket()
+  const decorder = new TextDecoder()
   const sensorIP = '192.168.5.10'
   const port = 10940
 
   client.connect({ port: port, host: sensorIP }, () => {
-    console.log('Sensor Connected')
-    // センサーにデータ取得要求を送信（Wiki: https://sourceforge.net/p/urgnetwork/wiki/scip_capture_jp/ ）
-    // client.write('MD0044072501000\n') // MD
-    client.write('GD0044072501\n') // GD
+    console.log('✨ Sensor Connected')
+    /**
+     * センサーにデータ取得要求を送信（Wiki: https://sourceforge.net/p/urgnetwork/wiki/scip_capture_jp/ ）
+     * 最初の４桁：距離データの取得開始インデックス
+     * 次の４桁：距離データの取得終了インデックス
+     * 次の２桁：距離データをまとめる取得データ数
+     * 次の１桁：スキャンを何周期に１回行うか (MD, MS コマンドのみ)
+     * 最後の２桁：データ取得回数 (MD, MS コマンドのみ)
+     */
+    const type = 'MD'
+    const start = '0000'
+    const end = '0001'
+    const grouping = '00'
+    const skips = '0'
+    const scans = '00'
+    client.write(`${type}${start}${end}${grouping}${skips}${scans}\n`)
   })
 
   // センサーからデータを受信した時の処理
-  client.on('data', (data) => {
-    console.log(data)
-    sendOscMessage('/sensor/distance', data)
+  client.on('data', (rawData) => {
+    const decodeBuffer = decorder.decode(rawData)
+    const decodeBufferLines = decodeBuffer.split('\n').slice(3) // データを改行で分割し、最初の3行をスキップ
+    const decodeSensorData = decodeBufferLines.map((decodeBufferLine) => {
+      // console.log(decodeBufferLine)
+      return decodeSensorData(decodeBufferLine, 3)
+    })
+
+    console.log(decodeSensorData)
+    console.log('-------------------')
+
+    // sendOscMessage('/sensor/distance', decodeSensorData)
   })
 
   client.on('close', () => {
@@ -55,6 +67,17 @@ function createSensorClient() {
   })
 
   return client
+}
+
+// センサーデータのデコード処理
+function decodeSensorData(code: string, byte: number): number {
+  let value = 0
+  for (let i = 0; i < byte; ++i) {
+    value <<= 6
+    value &= ~0x3f
+    value |= code.charCodeAt(i) - 0x30
+  }
+  return value
 }
 
 // ウィンドウを作成する関数
