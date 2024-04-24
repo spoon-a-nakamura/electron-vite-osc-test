@@ -35,20 +35,15 @@ function createSensorClient() {
 
   client.connect({ port: port, host: sensorIP }, () => {
     console.log('Sensor Connected')
-    // センサーにデータ取得要求を送信（これで合っているのだろうか……）
-    client.write('GD0000010000\n')
+    // センサーにデータ取得要求を送信（Wiki: https://sourceforge.net/p/urgnetwork/wiki/scip_capture_jp/ ）
+    // client.write('MD0044072501000\n') // MD
+    client.write('GD0044072501\n') // GD
   })
 
   // センサーからデータを受信した時の処理
   client.on('data', (data) => {
-    const dataString = data.toString()
-    const dataList = dataString.split('\n')
-    dataList.forEach((line) => {
-      console.log(line)
-      if (line.startsWith('GD')) {
-        sendOscMessage('/sensor/distance', line)
-      }
-    })
+    console.log(data)
+    sendOscMessage('/sensor/distance', data)
   })
 
   client.on('close', () => {
