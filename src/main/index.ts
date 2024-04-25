@@ -29,6 +29,7 @@ function createSensorClient() {
     const distances = md.getDistancesFromBuffer(rawData)
 
     console.log('-------------------')
+    console.log(md.timestamp)
     console.log(distances.length)
     // console.log(distances)
   })
