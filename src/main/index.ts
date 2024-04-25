@@ -5,9 +5,10 @@ import { is } from '@electron-toolkit/utils'
 import icon from '../../resources/icon.png?asset'
 import * as net from 'net'
 import * as OSC from 'node-osc'
-import { MD } from './decoder'
+import { MD } from './HokuyoUtils/MD'
 
-const md = new MD()
+const md = new MD({ fov: 90 })
+
 const oscClient = new OSC.Client('127.0.0.1', 57121)
 // アプリケーションのパス確認
 console.log(app.getAppPath())
@@ -15,40 +16,21 @@ console.log(app.getAppPath())
 // センサークライアントを作成する関数
 function createSensorClient() {
   const client = new net.Socket()
-  const decorder = new TextDecoder()
   const sensorIP = '192.168.5.10'
   const port = 10940
 
   client.connect({ port: port, host: sensorIP }, () => {
     console.log('✨ Sensor Connected')
-    /**
-     * センサーにデータ取得要求を送信（Wiki: https://sourceforge.net/p/urgnetwork/wiki/scip_capture_jp/ ）
-     * 最初の４桁：距離データの取得開始インデックス
-     * 次の４桁：距離データの取得終了インデックス
-     * 次の２桁：距離データをまとめる取得データ数
-     * 次の１桁：スキャンを何周期に１回行うか (MD, MS コマンドのみ)
-     * 最後の２桁：データ取得回数 (MD, MS コマンドのみ)
-     */
-    const type = 'MD'
-    const start = '0000'
-    const end = '0720'
-    const grouping = '00' // 角度の分解能
-    const skips = '0'
-    const scans = '00'
-    client.write(`${type}${start}${end}${grouping}${skips}${scans}\n`)
+    client.write(md.commnad)
   })
 
   // センサーからデータを受信した時の処理
   client.on('data', (rawData) => {
-    const decodedBuffer = decorder.decode(rawData)
-    const decodedSensorDatas = md.getDistances(decodedBuffer)
+    const distances = md.getDistancesFromBuffer(rawData)
 
-    console.log(decodedSensorDatas.length)
-    // console.log('----')
-    // console.log(decodedSensorDatas)
     console.log('-------------------')
-
-    // return sendOscMessage('/sensor/distance', decodedSensorDatas)
+    console.log(distances.length)
+    // console.log(distances)
   })
 
   client.on('close', () => {
