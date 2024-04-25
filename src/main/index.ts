@@ -31,8 +31,8 @@ function createSensorClient() {
      */
     const type = 'MD'
     const start = '0000'
-    const end = '1080'
-    const grouping = '00'
+    const end = '0720'
+    const grouping = '00' // 角度の分解能
     const skips = '0'
     const scans = '00'
     client.write(`${type}${start}${end}${grouping}${skips}${scans}\n`)
@@ -43,7 +43,9 @@ function createSensorClient() {
     const decodedBuffer = decorder.decode(rawData)
     const decodedSensorDatas = md.getDistances(decodedBuffer)
 
-    console.log(decodedSensorDatas)
+    console.log(decodedSensorDatas.length)
+    // console.log('----')
+    // console.log(decodedSensorDatas)
     console.log('-------------------')
 
     // return sendOscMessage('/sensor/distance', decodedSensorDatas)
