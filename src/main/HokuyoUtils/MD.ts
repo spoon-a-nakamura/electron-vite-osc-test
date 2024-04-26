@@ -23,13 +23,13 @@ export class MD {
   private static readonly MIN_STEP = 0
   private static readonly MAX_STEP = 1080
 
-  public readonly commnad: string
+  public readonly command: string
   private distances: number[] = []
   private decoder = new TextDecoder()
   private _timestamp: number = 0
 
   constructor(command?: Command) {
-    this.commnad = this.createCommand(command)
+    this.command = this.createCommand(command)
   }
 
   private createCommand(command?: Command) {

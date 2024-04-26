@@ -3,47 +3,16 @@ import { app, shell, BrowserWindow, ipcMain } from 'electron'
 import { join } from 'path'
 import { is } from '@electron-toolkit/utils'
 import icon from '../../resources/icon.png?asset'
-import * as net from 'net'
 import * as OSC from 'node-osc'
 import { MD } from './HokuyoUtils/MD'
-
-const md = new MD({ fov: 90 })
+import { TCP } from './HokuyoUtils/TCP'
 
 const oscClient = new OSC.Client('127.0.0.1', 57121)
 // アプリケーションのパス確認
 console.log(app.getAppPath())
 
-// センサークライアントを作成する関数
-function createSensorClient() {
-  const client = new net.Socket()
-  const sensorIP = '192.168.5.10'
-  const port = 10940
-
-  client.connect({ port: port, host: sensorIP }, () => {
-    console.log('✨ Sensor Connected')
-    client.write(md.commnad)
-  })
-
-  // センサーからデータを受信した時の処理
-  client.on('data', (rawData) => {
-    const distances = md.getDistancesFromBuffer(rawData)
-
-    console.log('-------------------')
-    console.log(md.timestamp)
-    console.log(distances.length)
-    // console.log(distances)
-  })
-
-  client.on('close', () => {
-    console.log('Connection closed')
-  })
-
-  client.on('error', (err) => {
-    console.error('Connection error:', err)
-  })
-
-  return client
-}
+const md = new MD({ fov: 90 })
+const tcp = new TCP('192.168.5.10', 10940)
 
 // OSCメッセージ送信の関数
 function sendOscMessage(address: string, ...args: OSC.ArgumentType[]) {
@@ -69,6 +38,19 @@ function createWindow(): void {
 
   mainWindow.on('ready-to-show', () => {
     mainWindow.show()
+
+    tcp.connect(() => {
+      console.log('✨ Sensor Connected')
+      tcp.send(md.command)
+    })
+
+    tcp.listen((rawData) => {
+      const distances = md.getDistancesFromBuffer(rawData)
+
+      console.log('-------------------')
+      // console.log(md.timestamp)
+      console.log(distances.length)
+    })
   })
 
   // 外部ウィンドウのリンクを許可しない設定
@@ -83,10 +65,9 @@ function createWindow(): void {
   } else {
     mainWindow.loadFile(join(__dirname, '../renderer/index.html'))
   }
-  const sensorClient = createSensorClient()
 
   mainWindow.on('closed', () => {
-    sensorClient.destroy() // センサークライアントの破棄
+    tcp.disconnect()
   })
 }
 
