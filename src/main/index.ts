@@ -4,15 +4,14 @@ import { join } from 'path'
 import { is } from '@electron-toolkit/utils'
 import icon from '../../resources/icon.png?asset'
 import * as OSC from 'node-osc'
-import { MD } from './HokuyoUtils/MD'
-import { TCP } from './HokuyoUtils/TCP'
+import * as HU from './HokuyoUtils'
 
 const oscClient = new OSC.Client('127.0.0.1', 57121)
 // アプリケーションのパス確認
 console.log(app.getAppPath())
 
-const md = new MD({ fov: 90 })
-const tcp = new TCP('192.168.5.10', 10940)
+const md = new HU.MD({ fov: 90 })
+const tcp = new HU.TCP('192.168.5.10', 10940)
 
 // OSCメッセージ送信の関数
 function sendOscMessage(address: string, ...args: OSC.ArgumentType[]) {
