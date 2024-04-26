@@ -4,14 +4,14 @@ export class TCP {
   readonly client: net.Socket
 
   constructor(
-    public readonly ip: string,
+    public readonly ip_address: string,
     public readonly port: number
   ) {
     this.client = new net.Socket()
   }
 
   connect(callback: () => void) {
-    this.client.connect({ host: this.ip, port: this.port }, callback)
+    this.client.connect({ host: this.ip_address, port: this.port }, callback)
   }
 
   send(command: string) {
