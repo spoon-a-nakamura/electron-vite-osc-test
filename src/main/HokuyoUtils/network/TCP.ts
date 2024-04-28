@@ -22,7 +22,8 @@ export class TCP {
     this.client.on('data', callback)
   }
 
-  disconnect() {
+  disconnect(command?: string) {
+    command && this.send(command)
     this.client.destroy()
   }
 }

@@ -1,2 +1,2 @@
-export { MD } from './scip/MD'
+export { UST10LX } from './scip/ust10lx'
 export { TCP } from './network/TCP'

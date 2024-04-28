@@ -8,7 +8,7 @@
  * @param scans - 0（2桁）｜何回取得するか。0の場合は垂れ流しでずっと取得する。
  * @link https://sourceforge.net/p/urgnetwork/wiki/scip_capture_jp/
  */
-type Command = {
+export type Command = {
   fov?: number
   start?: number
   end?: number
@@ -17,16 +17,18 @@ type Command = {
   scans?: number
 }
 
-export class MD {
-  private static readonly TYPE = 'MD'
-  private static readonly DATA_SIZE = 3
+export abstract class SCIP {
   private static readonly MIN_STEP = 0
   private static readonly MAX_STEP = 1080
 
+  protected abstract readonly type: 'GD' | 'GS' | 'MD' | 'MS'
+  protected abstract readonly dataSize
+
   public readonly command: string
+  public readonly commandQuit = 'QT'
+  public timestamp = 0
   private distances: number[] = []
   private decoder = new TextDecoder()
-  private _timestamp: number = 0
 
   constructor(command?: Command) {
     this.command = this.createCommand(command)
@@ -40,28 +42,29 @@ export class MD {
       start = range.start.toString().padStart(4, '0')
       end = range.end.toString().padStart(4, '0')
     } else {
-      start = (command?.start ?? MD.MIN_STEP).toString().padStart(4, '0')
-      end = (command?.end ?? MD.MAX_STEP).toString().padStart(4, '0')
+      start = (command?.start ?? SCIP.MIN_STEP).toString().padStart(4, '0')
+      end = (command?.end ?? SCIP.MAX_STEP).toString().padStart(4, '0')
     }
     const grouping = (command?.grouping ?? 0).toString().padStart(2, '0')
     const skips = (command?.skips ?? 0).toString()
     const scans = (command?.scans ?? 0).toString().padStart(2, '0')
 
-    return `${MD.TYPE}${start}${end}${grouping}${skips}${scans}\n`
+    if (this.type === 'MD' || this.type === 'MS') {
+      return `${this.type}${start}${end}${grouping}${skips}${scans}\n`
+    } else {
+      // GD, GS
+      return `${this.type}${start}${end}${grouping}\n`
+    }
   }
 
   private convertAngleToRangeIndex(degree: number) {
     const maxAngle = 270
     const startAngle = maxAngle / 2 - degree / 2
     const endAngle = maxAngle / 2 + degree / 2
-    const startIndex = MD.MAX_STEP * (startAngle / maxAngle)
-    const endIndex = MD.MAX_STEP * (endAngle / maxAngle)
+    const startIndex = SCIP.MAX_STEP * (startAngle / maxAngle)
+    const endIndex = SCIP.MAX_STEP * (endAngle / maxAngle)
 
     return { start: Math.round(startIndex), end: Math.round(endIndex) }
-  }
-
-  get timestamp() {
-    return this._timestamp
   }
 
   /**
@@ -76,21 +79,21 @@ export class MD {
    */
   getDistances(responseData: string) {
     this.distances.length = 0
-    this._timestamp = 0
+    this.timestamp = 0
 
     const respLines = responseData.split('\n')
 
     if (
-      respLines[0].startsWith(MD.TYPE) &&
+      respLines[0].startsWith(this.type) &&
       (respLines[1].startsWith('00') || respLines[1].startsWith('99'))
     ) {
-      this._timestamp = this.decode(respLines[2], 4)
+      this.timestamp = this.decode(respLines[2], 4)
 
       let dataLine = ''
       for (let i = 3; i < respLines.length; ++i) {
         dataLine += respLines[i].substring(0, respLines[i].length - 1)
       }
-      this.decodeArray(dataLine, MD.DATA_SIZE, this.distances)
+      this.decodeArray(dataLine, this.dataSize, this.distances)
     }
 
     return this.distances

@@ -3,21 +3,15 @@ import { app, shell, BrowserWindow, ipcMain } from 'electron'
 import { join } from 'path'
 import { is } from '@electron-toolkit/utils'
 import icon from '../../resources/icon.png?asset'
-import * as OSC from 'node-osc'
 import * as HU from './HokuyoUtils'
 
-const oscClient = new OSC.Client('127.0.0.1', 57121)
 // アプリケーションのパス確認
 console.log(app.getAppPath())
 
-const md = new HU.MD({ fov: 90 })
+const md = new HU.UST10LX.MD({ fov: 90 })
+// const md = new HU.MD()
+// const md = new HU.MD({ start: 539, end: 541 })
 const tcp = new HU.TCP('192.168.5.10', 10940)
-
-// OSCメッセージ送信の関数
-function sendOscMessage(address: string, ...args: OSC.ArgumentType[]) {
-  const oscMessage = new OSC.Message(address, ...args)
-  oscClient.send(oscMessage)
-}
 
 // ウィンドウを作成する関数
 function createWindow(): void {
@@ -48,7 +42,8 @@ function createWindow(): void {
 
       console.log('-------------------')
       // console.log(md.timestamp)
-      console.log(distances.length)
+      // console.log(distances.length)
+      console.log(distances)
     })
   })
 
@@ -66,7 +61,7 @@ function createWindow(): void {
   }
 
   mainWindow.on('closed', () => {
-    tcp.disconnect()
+    tcp.disconnect(md.commandQuit)
   })
 }
 
