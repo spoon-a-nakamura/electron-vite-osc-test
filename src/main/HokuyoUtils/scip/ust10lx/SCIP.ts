@@ -4,7 +4,7 @@
  * @param start - 0（4桁）｜開始インデックス
  * @param end - 1080（4桁）｜終了インデックス。センサーの規格によって異なり、UST-10LXの場合は1080stepまで。
  * @param grouping - 0（2桁）｜まとめる取得データ数。0または1の場合、0.25度（製品最大分解能の角度）ずつデータを取得し、2の場合は0.5度，3の場合は0.75度ずつ取得する。
- * @param skips - 0（1桁）｜何周期に1回取得するか。1周期は40fpsなので、2を指定した場合はデータの取得速度が20fpsになる。
+ * @param skips - 0（1桁）｜何周期に1回取得するか。1周期は40fps(25ms)なので、1を指定した場合はデータの取得速度が20fps(50ms)になる。
  * @param scans - 0（2桁）｜何回取得するか。0の場合は垂れ流しでずっと取得する。
  * @link https://sourceforge.net/p/urgnetwork/wiki/scip_capture_jp/
  */
@@ -17,24 +17,33 @@ export type Command = {
   scans?: number
 }
 
+type CommandType = 'GD' | 'GS' | 'MD' | 'MS'
+
 export abstract class SCIP {
   private static readonly MIN_STEP = 0
   private static readonly MAX_STEP = 1080
 
-  protected abstract readonly type: 'GD' | 'GS' | 'MD' | 'MS'
-  protected abstract readonly dataSize
+  private readonly dataSize: number
 
-  public readonly command: string
-  public readonly commandQuit = 'QT'
+  public readonly command: { request: string; quit: string }
   public timestamp = 0
   private distances: number[] = []
   private decoder = new TextDecoder()
+  private prevTime = performance.now()
 
-  constructor(command?: Command) {
-    this.command = this.createCommand(command)
+  constructor(
+    private readonly type: CommandType,
+    command?: Command
+  ) {
+    this.command = {
+      request: this.createRequestCommand(command),
+      quit: 'QT'
+    }
+
+    this.dataSize = type.endsWith('D') ? 3 : 2
   }
 
-  private createCommand(command?: Command) {
+  private createRequestCommand(command?: Command) {
     let start: string
     let end: string
     if (command?.fov) {
@@ -63,15 +72,25 @@ export abstract class SCIP {
     const endAngle = maxAngle / 2 + degree / 2
     const startIndex = SCIP.MAX_STEP * (startAngle / maxAngle)
     const endIndex = SCIP.MAX_STEP * (endAngle / maxAngle)
-
     return { start: Math.round(startIndex), end: Math.round(endIndex) }
+  }
+
+  getResponseTime() {
+    const current = performance.now()
+    const result = current - this.prevTime
+    this.prevTime = current
+    return result
+  }
+
+  decodeBuffer(buffer: Buffer) {
+    return this.decoder.decode(buffer)
   }
 
   /**
    * 応答データから距離データを取得する
    */
   getDistancesFromBuffer(buffer: Buffer) {
-    return this.getDistances(this.decoder.decode(buffer))
+    return this.getDistances(this.decodeBuffer(buffer))
   }
 
   /**
@@ -105,9 +124,9 @@ export abstract class SCIP {
     }
   }
 
-  private decode(data: string, size: number, offset: number = 0) {
+  private decode(data: string, size: number, offset = 0) {
     let value = 0
-    for (let i: number = 0; i < size; ++i) {
+    for (let i = 0; i < size; ++i) {
       value <<= 6
       value |= data.charCodeAt(offset + i) - 0x30
     }

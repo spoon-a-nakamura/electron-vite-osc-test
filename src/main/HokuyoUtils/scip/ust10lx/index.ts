@@ -1,23 +1,27 @@
-import { SCIP } from './SCIP'
+import { Command, SCIP } from './SCIP'
 
 class GD extends SCIP {
-  protected readonly type = 'GD'
-  protected readonly dataSize = 3
+  constructor(command?: Command) {
+    super('GD', command)
+  }
 }
 
 class GS extends SCIP {
-  protected readonly type = 'GS'
-  protected readonly dataSize = 2
+  constructor(command?: Command) {
+    super('GS', command)
+  }
 }
 
 class MD extends SCIP {
-  protected readonly type = 'MD'
-  protected readonly dataSize = 3
+  constructor(command?: Command) {
+    super('MD', command)
+  }
 }
 
 class MS extends SCIP {
-  protected readonly type = 'MS'
-  protected readonly dataSize = 2
+  constructor(command?: Command) {
+    super('MS', command)
+  }
 }
 
 export const UST10LX = { GD, GS, MD, MS }

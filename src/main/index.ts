@@ -8,9 +8,8 @@ import * as HU from './HokuyoUtils'
 // アプリケーションのパス確認
 console.log(app.getAppPath())
 
-const md = new HU.UST10LX.MD({ fov: 90 })
-// const md = new HU.MD()
-// const md = new HU.MD({ start: 539, end: 541 })
+const md = new HU.UST10LX.MD({ fov: 90, skips: 1 })
+// const md = new HU.UST10LX.MD()
 const tcp = new HU.TCP('192.168.5.10', 10940)
 
 // ウィンドウを作成する関数
@@ -34,16 +33,17 @@ function createWindow(): void {
 
     tcp.connect(() => {
       console.log('✨ Sensor Connected')
-      tcp.send(md.command)
+      tcp.send(md.command.request)
     })
 
     tcp.listen((rawData) => {
       const distances = md.getDistancesFromBuffer(rawData)
 
       console.log('-------------------')
-      // console.log(md.timestamp)
-      // console.log(distances.length)
-      console.log(distances)
+      console.log(md.getResponseTime())
+      console.log(distances.length)
+      // console.log(distances)
+      // console.log(md.decodeBuffer(rawData))
     })
   })
 
@@ -61,7 +61,7 @@ function createWindow(): void {
   }
 
   mainWindow.on('closed', () => {
-    tcp.disconnect(md.commandQuit)
+    tcp.disconnect(md.command.quit)
   })
 }
 
