@@ -15,8 +15,8 @@ const tcp = new HU.TCP('192.168.5.10', 10940)
 // ウィンドウを作成する関数
 function createWindow() {
   const mainWindow = new BrowserWindow({
-    width: 1300,
-    height: 800,
+    width: 1200,
+    height: 700,
     show: false,
     autoHideMenuBar: true,
     ...(process.platform === 'linux' ? { icon } : {}),

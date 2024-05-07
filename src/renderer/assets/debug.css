@@ -5,22 +5,15 @@
   top: 0;
   width: 100%;
   height: 100%;
-  opacity: 0.7;
   user-select: none;
   pointer-events: none;
   display: grid;
   place-items: center;
+  color: #a0a0a0;
 }
 
 .rulers {
-  border: 2px solid #fff;
-}
-
-.center-disc {
-  width: 11px;
-  height: 11px;
-  border-radius: 50%;
-  background: #fff;
+  border: 1px solid currentColor;
 }
 
 .vertical-lines {
@@ -32,7 +25,7 @@
 .vertical-lines > span {
   width: 1px;
   height: 100%;
-  background: #fff;
+  background: currentColor;
 }
 
 .horizontal-lines {
@@ -44,7 +37,62 @@
 .horizontal-lines > span {
   width: 100%;
   height: 1px;
-  background: #fff;
+  background: currentColor;
+}
+
+.axis {
+  position: absolute;
+  width: 100px;
+  height: 100px;
+  display: grid;
+  place-items: center;
+  color: #000;
+}
+
+.axis > .center {
+  position: absolute;
+  width: 11px;
+  height: 11px;
+  border-radius: 50%;
+  background: currentColor;
+}
+
+.axis > .y,
+.axis > .x {
+  position: absolute;
+  width: 1px;
+  height: 100%;
+  background: linear-gradient(to top, transparent 50%, currentColor 50%);
+  display: grid;
+  place-items: center;
+}
+.axis > .x {
+  rotate: 90deg;
+}
+.axis > .y::before,
+.axis > .x::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  width: 10px;
+  height: 10px;
+  clip-path: polygon(50% 0%, 0% 100%, 100% 100%);
+  background: currentColor;
+}
+.axis > .y::after {
+  content: '+y';
+  position: absolute;
+  line-height: 1;
+  top: 0;
+  right: 0.5em;
+}
+.axis > .x::after {
+  content: '+x';
+  position: absolute;
+  line-height: 1;
+  left: 0.2em;
+  top: 0.2em;
+  rotate: -90deg;
 }
 
 .logs {
@@ -57,7 +105,7 @@
   pointer-events: none;
   user-select: none;
 
-  opacity: 0.4;
+  opacity: 0.7;
 
   font-size: 15px;
   line-height: 1.2;
