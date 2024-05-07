@@ -1,0 +1,65 @@
+.rulers,
+.vertical-lines,
+.horizontal-lines {
+  position: fixed;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0.7;
+  user-select: none;
+  pointer-events: none;
+  display: grid;
+  place-items: center;
+}
+
+.rulers {
+  border: 2px solid #fff;
+}
+
+.center-disc {
+  width: 11px;
+  height: 11px;
+  border-radius: 50%;
+  background: #fff;
+}
+
+.vertical-lines {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-evenly;
+}
+
+.vertical-lines > span {
+  width: 1px;
+  height: 100%;
+  background: #fff;
+}
+
+.horizontal-lines {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-evenly;
+}
+
+.horizontal-lines > span {
+  width: 100%;
+  height: 1px;
+  background: #fff;
+}
+
+.logs {
+  position: absolute;
+  padding: 5px;
+  top: 0;
+  left: 0;
+  width: 300px;
+  height: 100%;
+  pointer-events: none;
+  user-select: none;
+
+  opacity: 0.4;
+
+  font-size: 15px;
+  line-height: 1.2;
+  word-break: break-all;
+}

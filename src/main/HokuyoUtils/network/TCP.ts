@@ -12,6 +12,10 @@ export class TCP {
 
   connect(callback: () => void) {
     this.client.connect({ host: this.ip_address, port: this.port }, callback)
+
+    this.client.on('error', (e) => {
+      console.error('tcp connection error: ' + e.message)
+    })
   }
 
   send(command: string) {
