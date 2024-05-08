@@ -11,6 +11,7 @@ console.log(app.getAppPath())
 const md = new HU.UST10LX.MD({ fov: 90, skips: 1 })
 // const md = new HU.UST10LX.MD()
 const tcp = new HU.TCP('192.168.5.10', 10940)
+const coordConverter = new HU.CoordinateConverter('bottom-right', [0.605, -0.43], [1, 0.7])
 
 // ウィンドウを作成する関数
 function createWindow() {
@@ -22,8 +23,8 @@ function createWindow() {
     ...(process.platform === 'linux' ? { icon } : {}),
     webPreferences: {
       preload: join(__dirname, '../preload/index.js'),
-      sandbox: false
-    }
+      sandbox: false,
+    },
   })
 
   mainWindow.on('ready-to-show', () => {
@@ -35,15 +36,17 @@ function createWindow() {
     })
 
     tcp.listen((rawData) => {
-      const distances = md.getDistancesFromBuffer(rawData)
+      // const distances = md.getDistancesFromBuffer(rawData)
+      // console.log('-------------------')
+      // console.log(md.getResponseTime())
+      // console.log(distances)
+      // // console.log(md.decodeBuffer(rawData))
+      // mainWindow.webContents.send('response-data', distances)
 
       console.log('-------------------')
-      console.log(md.getResponseTime())
-      console.log(distances.length)
-      // console.log(distances)
-      // console.log(md.decodeBuffer(rawData))
-
-      mainWindow.webContents.send('response-data', distances)
+      const coord = md.getCoordinatesFromBuffer(coordConverter, rawData)
+      console.log(coord)
+      mainWindow.webContents.send('response-data', coord)
     })
   })
 

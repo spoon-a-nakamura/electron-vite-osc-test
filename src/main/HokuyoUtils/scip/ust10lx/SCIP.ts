@@ -1,3 +1,5 @@
+import { CoordinateConverter } from '../CoordinateConverter'
+
 /**
  * コマンド生成に必要なパラメーター ※param - デフォルト値（制限）
  * @param fov - undefined（0 - 270度）｜センサーの中心からの視野角。これを指定した場合startとendの指定は無視される。90（度）と指定した場合、センサーの中心から左右に45度ずつ角度が取られ、この時のstart, end indexが計算される。
@@ -28,16 +30,17 @@ export abstract class SCIP {
   public readonly command: { request: string; quit: string }
   public timestamp = 0
   private distances: number[] = []
+  private coordinates: [number, number][] = []
   private decoder = new TextDecoder()
   private prevTime = performance.now()
 
   constructor(
     private readonly type: CommandType,
-    command?: Command
+    command?: Command,
   ) {
     this.command = {
       request: this.createRequestCommand(command),
-      quit: 'QT'
+      quit: 'QT\n',
     }
 
     this.dataSize = type.endsWith('D') ? 3 : 2
@@ -102,10 +105,7 @@ export abstract class SCIP {
 
     const respLines = responseData.split('\n')
 
-    if (
-      respLines[0].startsWith(this.type) &&
-      (respLines[1].startsWith('00') || respLines[1].startsWith('99'))
-    ) {
+    if (respLines[0].startsWith(this.type) && (respLines[1].startsWith('00') || respLines[1].startsWith('99'))) {
       this.timestamp = this.decode(respLines[2], 4)
 
       let dataLine = ''
@@ -118,9 +118,49 @@ export abstract class SCIP {
     return this.distances
   }
 
+  /**
+   * 応答データからデコードした距離データを、スクリーン座標（画面中央を原点とする-1~1の座標系）で返す
+   */
+  getCoordinatesFromBuffer(converter: CoordinateConverter, buffer: Buffer, isBunch = true) {
+    this.coordinates.length = 0
+    this.timestamp = 0
+
+    const respLines = this.decoder.decode(buffer).split('\n')
+
+    if (respLines[0].startsWith(this.type) && (respLines[1].startsWith('00') || respLines[1].startsWith('99'))) {
+      this.timestamp = this.decode(respLines[2], 4)
+
+      let dataLine = ''
+      for (let i = 3; i < respLines.length; ++i) {
+        dataLine += respLines[i].substring(0, respLines[i].length - 1)
+      }
+      this.decodeArrayToCoord(converter, dataLine, this.dataSize, isBunch, this.coordinates)
+    }
+
+    return this.coordinates
+  }
+
   private decodeArray(data: string, size: number, results: number[]) {
     for (let pos = 0; pos <= data.length - size; pos += size) {
       results.push(this.decode(data, size, pos))
+    }
+  }
+
+  private decodeArrayToCoord(converter: CoordinateConverter, data: string, size: number, isBunch: boolean, results: [number, number][]) {
+    const len = (data.length - size) / size + 1
+    let index = 0
+
+    for (let pos = 0; pos <= data.length - size; pos += size) {
+      index = pos / size
+      const distance = this.decode(data, size, pos)
+      const coord = converter.convert(distance, index, len)
+
+      if (isBunch) {
+        const bunchedCoord = converter.bunch(coord, index === len - 1)
+        if (bunchedCoord) results.push(bunchedCoord)
+      } else {
+        if (converter.inProjectionArea(coord)) results.push(coord)
+      }
     }
   }
 
