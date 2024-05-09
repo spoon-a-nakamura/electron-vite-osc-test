@@ -1,4 +1,4 @@
-import { CoordinateConverter } from '../CoordinateConverter'
+import { type CoordinateConverter } from '../CoordinateConverter'
 
 /**
  * コマンド生成に必要なパラメーター ※param - デフォルト値（制限）
@@ -62,6 +62,7 @@ export abstract class SCIP {
     const scans = (command?.scans ?? 0).toString().padStart(2, '0')
 
     if (this.type === 'MD' || this.type === 'MS') {
+      // MD, MS
       return `${this.type}${start}${end}${grouping}${skips}${scans}\n`
     } else {
       // GD, GS

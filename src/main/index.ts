@@ -9,7 +9,6 @@ import * as HU from './HokuyoUtils'
 console.log(app.getAppPath())
 
 const md = new HU.UST10LX.MD({ fov: 90 })
-// const md = new HU.UST10LX.MD()
 const tcp = new HU.TCP('192.168.5.10', 10940)
 const coordConverter = new HU.CoordinateConverter('bottom-right', [0.635, -0.37], [1, 0.7])
 
