@@ -36,17 +36,11 @@ function createWindow() {
     })
 
     tcp.listen((rawData) => {
-      // const distances = md.getDistancesFromBuffer(rawData)
-      // console.log('-------------------')
-      // console.log(md.getResponseTime())
-      // console.log(distances)
-      // // console.log(md.decodeBuffer(rawData))
-      // mainWindow.webContents.send('response-data', distances)
+      const coord = md.getCoordinatesFromBuffer(coordConverter, rawData)
+      mainWindow.webContents.send('response-data', coord)
 
       console.log('-------------------')
-      const coord = md.getCoordinatesFromBuffer(coordConverter, rawData)
       console.log(coord)
-      mainWindow.webContents.send('response-data', coord)
     })
   })
 
