@@ -153,13 +153,14 @@ export abstract class SCIP {
     for (let pos = 0; pos <= data.length - size; pos += size) {
       index = pos / size
       const distance = this.decode(data, size, pos)
-      const coord = converter.convert(distance, index, len)
+      const screenCoord = converter.convert(distance, index, len)
 
       if (isBunch) {
-        const bunchedCoord = converter.bunch(coord, index === len - 1)
-        if (bunchedCoord) results.push(bunchedCoord)
+        const bunchedCoord = converter.bunch(screenCoord, index === 0 ? 'first' : index === len - 1 ? 'last' : 'middle')
+        if (bunchedCoord) results.push(converter.normalize(bunchedCoord))
       } else {
-        if (converter.inProjectionArea(coord)) results.push(coord)
+        const normCoord = converter.normalize(screenCoord)
+        if (converter.inProjectionArea(normCoord)) results.push(normCoord)
       }
     }
   }
