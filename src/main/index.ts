@@ -8,9 +8,19 @@ import * as HU from './HokuyoUtils'
 // アプリケーションのパス確認
 console.log(app.getAppPath())
 
-const md = new HU.UST10LX.MD({ fov: 90 })
 const tcp = new HU.TCP('192.168.5.10', 10940)
-const coordConverter = new HU.CoordinateConverter('bottom-right', [0.635, -0.37], [1, 0.7])
+
+const md = new HU.UST10LX.MD({ fov: 90 })
+
+const coordConverter = new HU.CoordinateConverter({
+  sensorPlacement: 'bottom-right',
+  sensorCoordinateFromCenter: [0.635, -0.37],
+  projectionAreaSize: [1, 0.7],
+  normalize: true,
+  bunch: true,
+  bunchEps: 0.05,
+  bunchPrecisionCount: 3,
+})
 
 // ウィンドウを作成する関数
 function createWindow() {

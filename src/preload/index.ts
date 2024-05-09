@@ -12,7 +12,7 @@ if (process.contextIsolated) {
     contextBridge.exposeInMainWorld('electron', electronAPI)
     contextBridge.exposeInMainWorld('api', api)
     contextBridge.exposeInMainWorld('electronAPI', {
-      response: (callback) => ipcRenderer.on('response-data', (_event, value) => callback(value))
+      response: (callback) => ipcRenderer.on('response-data', (_event, value) => callback(value)),
     })
   } catch (error) {
     console.error(error)

@@ -122,7 +122,7 @@ export abstract class SCIP {
   /**
    * 応答データからデコードした距離データを、スクリーン座標（画面中央を原点とする-1~1の座標系）で返す
    */
-  getCoordinatesFromBuffer(converter: CoordinateConverter, buffer: Buffer, isBunch = true) {
+  getCoordinatesFromBuffer(converter: CoordinateConverter, buffer: Buffer) {
     this.coordinates.length = 0
     this.timestamp = 0
 
@@ -135,7 +135,7 @@ export abstract class SCIP {
       for (let i = 3; i < respLines.length; ++i) {
         dataLine += respLines[i].substring(0, respLines[i].length - 1)
       }
-      this.decodeArrayToCoord(converter, dataLine, this.dataSize, isBunch, this.coordinates)
+      this.decodeArrayToCoord(converter, dataLine, this.dataSize, this.coordinates)
     }
 
     return this.coordinates
@@ -147,7 +147,7 @@ export abstract class SCIP {
     }
   }
 
-  private decodeArrayToCoord(converter: CoordinateConverter, data: string, size: number, isBunch: boolean, results: [number, number][]) {
+  private decodeArrayToCoord(converter: CoordinateConverter, data: string, size: number, results: [number, number][]) {
     const len = (data.length - size) / size + 1
     let index = 0
 
@@ -156,12 +156,12 @@ export abstract class SCIP {
       const distance = this.decode(data, size, pos)
       const screenCoord = converter.convert(distance, index, len)
 
-      if (isBunch) {
+      if (converter.isBunch) {
         const bunchedCoord = converter.bunch(screenCoord, index === 0 ? 'first' : index === len - 1 ? 'last' : 'middle')
-        if (bunchedCoord) results.push(converter.normalize(bunchedCoord))
+        if (bunchedCoord) results.push(converter.isNormalize ? converter.normalize(bunchedCoord) : bunchedCoord)
       } else {
         const normCoord = converter.normalize(screenCoord)
-        if (converter.inProjectionArea(normCoord)) results.push(normCoord)
+        if (converter.inProjectionArea(normCoord)) results.push(converter.isNormalize ? normCoord : screenCoord)
       }
     }
   }

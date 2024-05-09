@@ -1,28 +1,44 @@
 type SensorPlacement = 'top-left' | 'top-right' | 'bottom-left' | 'bottom-right'
 type XY = [number, number]
 
+/**
+ * @param sensorPlacement センサーの配置
+ * @param sensorCoordinateFromCenter 投影面中央からのセンサー位置 [m]
+ * @param projectionAreaSize 投影面の大きさ [m]
+ * @param normalize 正規化するか [def: true]
+ * @param bunch バンチ処理をするか [def: true]
+ * @param bunchEps バンチするときに、座標を同一位置とみなすための誤差 [m | def: 0.05]
+ * @param bunchPrecisionCount 座標をバンチする時に、bufferにいくつ以上座標データがあることを前提にするか [def: 3]
+ */
+export type CoordinateConverterOptions = {
+  sensorPlacement: SensorPlacement
+  sensorCoordinateFromCenter: XY
+  projectionAreaSize: XY
+  normalize?: boolean
+  bunch?: boolean
+  bunchEps?: number
+  bunchPrecisionCount?: number
+}
+
 export class CoordinateConverter {
   private readonly sensorFov = 90 * (Math.PI / 180)
   private readonly sensorAxisRotationMatrix: { a11: number; a12: number; a21: number; a22: number }
 
-  // バンチするときに、座標を同一位置とみなすための誤差
-  private readonly bunchEps = 0.05 // [m]
-  // 座標をバンチする時に、bufferにいくつ以上座標データがあることを前提にするか（1とかだと、検知の振れで誤ったデータがとれることがあるための回避策）
-  private readonly bunchPrecisionCount = 3
   private bunchBuffer: XY[] = []
   private prevCoord: XY = [Number.MAX_SAFE_INTEGER, Number.MAX_SAFE_INTEGER]
 
-  /**
-   * @param sensorPlacement センサーの配置
-   * @param sensorCoordinateFromCenter 投影面中央からのセンサー位置[m]
-   * @param projectionAreaSize 投影面の大きさ[m]
-   */
-  constructor(
-    sensorPlacement: SensorPlacement,
-    private readonly sensorCoordinateFromCenter: XY,
-    private readonly projectionAreaSize: XY,
-  ) {
-    this.sensorAxisRotationMatrix = this.calcSensorAxisRotationMatrix(sensorPlacement)
+  readonly isNormalize: boolean
+  readonly isBunch: boolean
+  private readonly bunchEps
+  private readonly bunchPrecisionCount
+
+  constructor(private options: CoordinateConverterOptions) {
+    this.sensorAxisRotationMatrix = this.calcSensorAxisRotationMatrix(options.sensorPlacement)
+
+    this.isNormalize = options.normalize === undefined || options.normalize
+    this.isBunch = options.bunch === undefined || options.bunch
+    this.bunchEps = options.bunchEps ?? 0.05
+    this.bunchPrecisionCount = options.bunchPrecisionCount ?? 3
   }
 
   private calcSensorAxisRotationMatrix(placement: SensorPlacement) {
@@ -38,7 +54,7 @@ export class CoordinateConverter {
 
   /**
    * 距離データをスクリーン座標に変換する
-   * @param distance 距離[mm]
+   * @param distance 距離 [mm]
    * @param dataIndex データのインデックス
    * @param datasLength データ列の長さ
    * @returns
@@ -56,17 +72,20 @@ export class CoordinateConverter {
     const fixedAxisLocalCoord = [mat.a11 * localCoord[0] + mat.a12 * localCoord[1], mat.a21 * localCoord[0] + mat.a22 * localCoord[1]]
 
     // センサー直交座標から、グローバル座標に変換する
-    const globalCoord: XY = [this.sensorCoordinateFromCenter[0] + fixedAxisLocalCoord[0], this.sensorCoordinateFromCenter[1] + fixedAxisLocalCoord[1]]
+    const globalCoord: XY = [
+      this.options.sensorCoordinateFromCenter[0] + fixedAxisLocalCoord[0],
+      this.options.sensorCoordinateFromCenter[1] + fixedAxisLocalCoord[1],
+    ]
 
     return globalCoord
   }
 
   /**
    * 投影面のサイズで正規化(-1 ~ 1)する
-   * @param coord 座標[m]
+   * @param coord 座標 [m]
    */
   normalize(coord: XY): XY {
-    return [coord[0] / (this.projectionAreaSize[0] / 2), coord[1] / (this.projectionAreaSize[1] / 2)]
+    return [coord[0] / (this.options.projectionAreaSize[0] / 2), coord[1] / (this.options.projectionAreaSize[1] / 2)]
   }
 
   /**
@@ -79,7 +98,7 @@ export class CoordinateConverter {
 
   /**
    * 付近の検知座標をまとめる（同一オブジェクトの検知）
-   * @param coord スクリーン空間の座標[m]
+   * @param coord スクリーン空間の座標 [m]
    * @param dataPlace データのデータ列上の位置
    * @returns 付近の検知座標の平均座標｜null
    */
