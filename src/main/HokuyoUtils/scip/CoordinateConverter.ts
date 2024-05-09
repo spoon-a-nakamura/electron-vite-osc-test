@@ -32,6 +32,9 @@ export class CoordinateConverter {
   private readonly bunchEps
   private readonly bunchPrecisionCount
 
+  /**
+   * @param options {@link CoordinateConverterOptions}
+   */
   constructor(private options: CoordinateConverterOptions) {
     this.sensorAxisRotationMatrix = this.calcSensorAxisRotationMatrix(options.sensorPlacement)
 
