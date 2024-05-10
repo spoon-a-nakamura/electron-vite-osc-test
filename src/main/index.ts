@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 import { is } from '@electron-toolkit/utils'
-import { BrowserWindow, app, globalShortcut, shell } from 'electron'
+import { BrowserWindow, Menu, MenuItem, MenuItemConstructorOptions, app, globalShortcut, shell } from 'electron'
 import { join } from 'path'
 import icon from '../../resources/icon.png?asset'
 import * as HU from './HokuyoUtils'
@@ -77,9 +77,28 @@ function createWindow() {
 app.whenReady().then(() => {
   const mainWindow = createWindow()
 
-  // ----------------------
+  // add menu items
+  let items: (MenuItemConstructorOptions | MenuItem)[] = [
+    {
+      label: 'Options',
+      submenu: [
+        {
+          label: 'toggle marker',
+        },
+        {
+          label: 'toggle sketch',
+        },
+      ],
+    },
+  ]
+
+  const defMenuItems = Menu.getApplicationMenu()?.items
+  if (defMenuItems) items.unshift(...defMenuItems)
+
+  const menu = Menu.buildFromTemplate(items)
+  Menu.setApplicationMenu(menu)
+
   // add globalShortcut
-  // ----------------------
   globalShortcut.register('F5', () => {
     mainWindow.reload()
   })
