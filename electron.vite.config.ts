@@ -1,11 +1,14 @@
 import { defineConfig, externalizeDepsPlugin } from 'electron-vite'
+import glsl from 'vite-plugin-glsl'
 
 export default defineConfig({
   main: {
-    plugins: [externalizeDepsPlugin()]
+    plugins: [externalizeDepsPlugin()],
   },
   preload: {
-    plugins: [externalizeDepsPlugin()]
+    plugins: [externalizeDepsPlugin()],
   },
-  renderer: {}
+  renderer: {
+    plugins: [glsl()],
+  },
 })

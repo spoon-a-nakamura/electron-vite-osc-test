@@ -14,7 +14,7 @@ const md = new HU.UST10LX.MD({ fov: 90 })
 
 const coordConverter = new HU.CoordinateConverter({
   sensorPlacement: 'bottom-right',
-  sensorCoordinateFromCenter: [0.635, -0.37],
+  sensorCoordinateFromCenter: [0.635, -0.368],
   projectionAreaSize: [1, 0.7],
   normalize: true,
   bunch: true,
@@ -45,11 +45,11 @@ function createWindow() {
     })
 
     tcp.listen((rawData) => {
-      const coord = md.getCoordinatesFromBuffer(coordConverter, rawData)
+      const coord = md.getCoordinates(coordConverter, rawData)
       mainWindow.webContents.send('response-data', coord)
 
-      console.log('-------------------')
-      console.log(coord)
+      // console.log('-------------------')
+      // console.log(coord)
     })
   })
 

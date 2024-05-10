@@ -93,18 +93,11 @@ export abstract class SCIP {
   /**
    * 応答データから距離データを取得する
    */
-  getDistancesFromBuffer(buffer: Buffer) {
-    return this.getDistances(this.decodeBuffer(buffer))
-  }
-
-  /**
-   * 応答データから距離データを取得する
-   */
-  getDistances(responseData: string) {
+  getDistances(buffer: Buffer) {
     this.distances.length = 0
     this.timestamp = 0
 
-    const respLines = responseData.split('\n')
+    const respLines = this.decodeBuffer(buffer).split('\n')
 
     if (respLines[0].startsWith(this.type) && (respLines[1].startsWith('00') || respLines[1].startsWith('99'))) {
       this.timestamp = this.decode(respLines[2], 4)
@@ -122,7 +115,7 @@ export abstract class SCIP {
   /**
    * 応答データからデコードした距離データを、スクリーン座標（画面中央を原点とする-1~1の座標系）で返す
    */
-  getCoordinatesFromBuffer(converter: CoordinateConverter, buffer: Buffer) {
+  getCoordinates(converter: CoordinateConverter, buffer: Buffer) {
     this.coordinates.length = 0
     this.timestamp = 0
 

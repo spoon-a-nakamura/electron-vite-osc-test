@@ -6,68 +6,54 @@
     <!-- https://developer.mozilla.org/en-US/docs/Web/HTTP/CSP -->
     <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:" />
 
-    <link href="./assets/styles.css" type="text/css" rel="stylesheet" />
-    <script type="module" defer src="./src/entry.ts"></script>
+    <link href="./styles/entry.scss" type="text/css" rel="stylesheet" />
+    <script type="module" defer src="./scripts/entry.ts"></script>
   </head>
 
   <body>
-    <div class="rulers">
-      <div class="vertical-lines">
-        <span></span>
-        <span></span>
-        <span></span>
-        <span></span>
-        <span></span>
-        <span></span>
-        <span></span>
-        <span></span>
-        <span></span>
-        <span></span>
-        <span></span>
-        <span></span>
-        <span></span>
-      </div>
-      <div class="horizontal-lines">
-        <span></span>
-        <span></span>
-        <span></span>
-        <span></span>
-        <span></span>
-        <span></span>
-        <span></span>
-      </div>
-      <div class="axis">
-        <span class="x"></span>
-        <span class="y"></span>
-        <span class="center"></span>
-      </div>
+    <div class="sketch">
+      <canvas></canvas>
     </div>
-    <div class="sensor-dots">
-      <span></span>
-      <span></span>
-      <span></span>
-      <span></span>
-      <span></span>
-      <span></span>
-      <span></span>
-      <span></span>
-      <span></span>
-      <span></span>
-      <!-- 10 -->
-      <span></span>
-      <span></span>
-      <span></span>
-      <span></span>
-      <span></span>
-      <span></span>
-      <span></span>
-      <span></span>
-      <span></span>
-      <span></span>
-      <!-- 20 -->
-    </div>
-    <div class="logs">
-      <p>[coordinates]</p>
+
+    <div class="marker hidden">
+      <div class="rulers">
+        <div class="vertical-lines">
+          <span></span>
+          <span></span>
+          <span></span>
+          <span></span>
+          <span></span>
+          <span></span>
+          <span></span>
+          <span></span>
+          <span></span>
+          <span></span>
+          <span></span>
+          <span></span>
+          <span></span>
+        </div>
+        <div class="horizontal-lines">
+          <span></span>
+          <span></span>
+          <span></span>
+          <span></span>
+          <span></span>
+          <span></span>
+          <span></span>
+        </div>
+        <div class="axis">
+          <span class="x"></span>
+          <span class="y"></span>
+          <span class="center"></span>
+        </div>
+      </div>
+
+      <div class="sensor-dots"></div>
+
+      <div class="logs">
+        <p class="fps"><span>FPS: </span><span class="num">75</span></p>
+        <p class="coords">[coordinates]</p>
+      </div>
     </div>
   </body>
 </html>
