@@ -4,19 +4,22 @@ import { BrowserWindow, Menu, MenuItem, MenuItemConstructorOptions, app, globalS
 import { join } from 'path'
 import icon from '../../resources/icon.png?asset'
 import * as HU from './HokuyoUtils'
-// import fs from 'fs'
+import { AppConfig, readAppConfig } from './config'
 
 class App {
+  private readonly cnf: AppConfig
   private readonly tcp: HU.TCP
   private readonly md: HU.UST10LX.MD
   private readonly coordConverter: HU.CoordinateConverter
 
   constructor() {
-    this.tcp = new HU.TCP('192.168.5.10', 10940)
-    this.md = new HU.UST10LX.MD({ fov: 90 })
-    this.coordConverter = this.createCoordinateConverter()
-
     console.log(app.getAppPath())
+
+    this.cnf = readAppConfig(join(app.getAppPath(), 'appconfig.ini'))
+
+    this.tcp = new HU.TCP(this.cnf.sensor._1.ip, this.cnf.sensor._1.port)
+    this.md = new HU.UST10LX.MD({ ...this.cnf.sensor })
+    this.coordConverter = this.createCoordinateConverter()
 
     app.whenReady().then(() => {
       const win = this.createWindow()
@@ -26,21 +29,14 @@ class App {
     })
 
     this.addAppEvents()
-
-    // const buffer = fs.readFileSync(join(app.getAppPath(), 'README.md'))
-    // const data = buffer.toString('utf8')
-    // console.log(data)
   }
 
   private createCoordinateConverter() {
     return new HU.CoordinateConverter({
-      sensorPlacement: 'bottom-right',
-      sensorCoordinateFromCenter: [0.635, -0.368],
-      projectionAreaSize: [1, 0.7],
-      normalize: true,
-      bunch: true,
-      bunchEps: 0.05,
-      bunchPrecisionCount: 3,
+      sensorPlacement: this.cnf.sensor._1.placement,
+      sensorCoordinateFromCenter: this.cnf.sensor._1.coordinate_from_center,
+      projectionAreaSize: this.cnf.projection.screen_size,
+      ...this.cnf.coordinate_converter,
     })
   }
 
@@ -54,8 +50,8 @@ class App {
 
   private createWindow() {
     const win = new BrowserWindow({
-      width: 1200,
-      height: 700,
+      width: this.cnf.app.window_size[0],
+      height: this.cnf.app.window_size[1],
       show: false,
       // autoHideMenuBar: true,
       ...(process.platform === 'linux' ? { icon } : {}),
@@ -70,11 +66,16 @@ class App {
       return { action: 'deny' }
     })
 
-    if (is.dev && process.env['ELECTRON_RENDERER_URL']) {
-      win.loadURL(process.env['ELECTRON_RENDERER_URL'])
-    } else {
-      win.loadFile(join(__dirname, '../renderer/index.html'))
-    }
+    new Promise(async (resolve) => {
+      if (is.dev && process.env['ELECTRON_RENDERER_URL']) {
+        await win.loadURL(`${process.env['ELECTRON_RENDERER_URL']}/${this.cnf.app.renderer_file}`)
+      } else {
+        await win.loadFile(join(__dirname, `../renderer/${this.cnf.app.renderer_file}`))
+      }
+      resolve(null)
+    }).then(() => {
+      this.initRenderer(win)
+    })
 
     return win
   }
@@ -126,17 +127,14 @@ class App {
           {
             label: 'marker view',
             type: 'checkbox',
-            checked: true,
+            checked: this.cnf.app.visibled_marker,
             click: (e) => win.webContents.send('marker-view', e.checked),
           },
           {
             label: 'sketch view',
             type: 'checkbox',
-            checked: true,
+            checked: this.cnf.app.visibled_sketch,
             click: (e) => win.webContents.send('sketch-view', e.checked),
-          },
-          {
-            type: 'separator',
           },
         ],
       },
@@ -147,6 +145,11 @@ class App {
 
     const menu = Menu.buildFromTemplate(items)
     Menu.setApplicationMenu(menu)
+  }
+
+  private initRenderer(win: BrowserWindow) {
+    win.webContents.send('marker-view', this.cnf.app.visibled_marker)
+    win.webContents.send('sketch-view', this.cnf.app.visibled_sketch)
   }
 }
 

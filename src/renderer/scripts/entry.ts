@@ -3,14 +3,14 @@ import { sketch } from './sketch'
 
 console.log('entry render process')
 
-marker.show()
+marker.visible()
 
 window.electronAPI.visibledMarkerView((visibled) => {
-  if (visibled) marker.show()
+  if (visibled) marker.visible()
   else marker.hidden()
 })
 
 window.electronAPI.visibledSketchView((visibled) => {
-  if (visibled) sketch.show()
+  if (visibled) sketch.visible()
   else sketch.hidden()
 })

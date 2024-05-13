@@ -14,7 +14,7 @@ class Sketch {
     return
   }
 
-  show() {
+  visible() {
     this.sketchEl.classList.remove('hidden')
     this.canvas?.startRendering()
   }

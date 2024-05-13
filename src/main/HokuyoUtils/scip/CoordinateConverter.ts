@@ -1,5 +1,5 @@
-type SensorPlacement = 'top-left' | 'top-right' | 'bottom-left' | 'bottom-right'
-type XY = [number, number]
+export type SensorPlacement = 'top-left' | 'top-right' | 'bottom-left' | 'bottom-right'
+export type XY = [number, number]
 
 /**
  * @param sensorPlacement センサーの配置

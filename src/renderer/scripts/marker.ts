@@ -1,17 +1,71 @@
 import { datas } from './datas'
 
 class Marker {
-  private markerEl = document.querySelector<HTMLElement>('.marker')!
-  private logCoords = this.markerEl.querySelector<HTMLElement>('.logs > .coords')!
-  private logFPS = this.markerEl.querySelector<HTMLElement>('.logs > .fps > .num')!
-  private sensorDotsContainer = this.markerEl.querySelector<HTMLElement>('.sensor-dots')!
+  private markerEl: HTMLElement
+  private logCoords: HTMLElement
+  private logFPS: HTMLElement
+  private sensorDotsContainer: HTMLElement
   private sensorDots: NodeListOf<HTMLElement>
   private animeId?: number
   private prevTime = performance.now()
   private fpsLogs: number[] = []
 
   constructor() {
+    this.createMarkerView()
+
+    this.markerEl = document.querySelector<HTMLElement>('.marker')!
+    this.logCoords = this.markerEl.querySelector<HTMLElement>('.logs > .coords')!
+    this.logFPS = this.markerEl.querySelector<HTMLElement>('.logs > .fps > .num')!
+    this.sensorDotsContainer = this.markerEl.querySelector<HTMLElement>('.sensor-dots')!
+
     this.sensorDots = this.createSensorDots(100)
+  }
+
+  private createMarkerView() {
+    document.body.innerHTML = `
+      ${document.body.innerHTML}
+
+      <div class="marker hidden">
+        <div class="rulers">
+          <div class="vertical-lines">
+            <span></span>
+            <span></span>
+            <span></span>
+            <span></span>
+            <span></span>
+            <span></span>
+            <span></span>
+            <span></span>
+            <span></span>
+            <span></span>
+            <span></span>
+            <span></span>
+            <span></span>
+          </div>
+          <div class="horizontal-lines">
+            <span></span>
+            <span></span>
+            <span></span>
+            <span></span>
+            <span></span>
+            <span></span>
+            <span></span>
+          </div>
+          <div class="axis">
+            <span class="x"></span>
+            <span class="y"></span>
+            <span class="center"></span>
+          </div>
+        </div>
+
+        <div class="sensor-dots"></div>
+
+        <div class="logs">
+          <p class="fps"><span>FPS: </span><span class="num">75</span></p>
+          <p class="coords">[coordinates]</p>
+        </div>
+      </div>
+    `
   }
 
   private createSensorDots(count: number) {
@@ -23,7 +77,7 @@ class Marker {
     return this.sensorDotsContainer.querySelectorAll<HTMLElement>('span')
   }
 
-  show() {
+  visible() {
     this.markerEl.classList.toggle('hidden', false)
     this.animeId = this.update()
   }
@@ -46,10 +100,12 @@ class Marker {
     const currentTime = performance.now()
     const dt = currentTime - this.prevTime
     this.prevTime = currentTime
-    this.fpsLogs.push(1000 / dt)
-    if (20 < this.fpsLogs.length) this.fpsLogs.shift()
-    const avgFps = this.fpsLogs.reduce((p, c) => p + c) / this.fpsLogs.length
-    this.logFPS.innerText = avgFps.toFixed(0)
+    if (0 < dt) {
+      this.fpsLogs.push(1000 / dt)
+      if (20 < this.fpsLogs.length) this.fpsLogs.shift()
+      const avgFps = this.fpsLogs.reduce((p, c) => p + c) / this.fpsLogs.length
+      this.logFPS.innerText = avgFps.toFixed(0)
+    }
   }
 
   private update() {
