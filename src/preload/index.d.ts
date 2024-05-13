@@ -6,6 +6,8 @@ declare global {
     api: unknown
     electronAPI: {
       response: (callback) => void
+      visibledMarkerView: (callback) => void
+      visibledSketchView: (callback) => void
     }
   }
 }

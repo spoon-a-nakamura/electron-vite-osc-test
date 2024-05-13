@@ -30,17 +30,19 @@ class Marker {
 
   hidden() {
     this.markerEl.classList.toggle('hidden', true)
-    this.animeId && cancelAnimationFrame(this.animeId)
+    this.fpsLogs.length = 0
+    this.prevTime = 0
+  }
+
+  private get isHidden() {
+    return this.markerEl.classList.contains('hidden')
   }
 
   private fixed(num: number, precision = 3) {
     return num.toFixed(precision)
   }
 
-  private update() {
-    const id = requestAnimationFrame(this.update.bind(this))
-
-    // update fps log
+  private updateFps() {
     const currentTime = performance.now()
     const dt = currentTime - this.prevTime
     this.prevTime = currentTime
@@ -48,6 +50,17 @@ class Marker {
     if (20 < this.fpsLogs.length) this.fpsLogs.shift()
     const avgFps = this.fpsLogs.reduce((p, c) => p + c) / this.fpsLogs.length
     this.logFPS.innerText = avgFps.toFixed(0)
+  }
+
+  private update() {
+    if (this.isHidden) {
+      this.animeId && cancelAnimationFrame(this.animeId)
+      return
+    }
+    const id = requestAnimationFrame(this.update.bind(this))
+
+    // update fps log
+    this.updateFps()
 
     const coords = datas.coordinates
     if (!coords) return id

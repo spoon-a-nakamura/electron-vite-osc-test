@@ -4,119 +4,150 @@ import { BrowserWindow, Menu, MenuItem, MenuItemConstructorOptions, app, globalS
 import { join } from 'path'
 import icon from '../../resources/icon.png?asset'
 import * as HU from './HokuyoUtils'
+// import fs from 'fs'
 
-// アプリケーションのパス確認
-console.log(app.getAppPath())
+class App {
+  private readonly tcp: HU.TCP
+  private readonly md: HU.UST10LX.MD
+  private readonly coordConverter: HU.CoordinateConverter
 
-const tcp = new HU.TCP('192.168.5.10', 10940)
+  constructor() {
+    this.tcp = new HU.TCP('192.168.5.10', 10940)
+    this.md = new HU.UST10LX.MD({ fov: 90 })
+    this.coordConverter = this.createCoordinateConverter()
 
-const md = new HU.UST10LX.MD({ fov: 90 })
+    console.log(app.getAppPath())
 
-const coordConverter = new HU.CoordinateConverter({
-  sensorPlacement: 'bottom-right',
-  sensorCoordinateFromCenter: [0.635, -0.368],
-  projectionAreaSize: [1, 0.7],
-  normalize: true,
-  bunch: true,
-  bunchEps: 0.05,
-  bunchPrecisionCount: 3,
-})
-
-// ウィンドウを作成する関数
-function createWindow() {
-  const mainWindow = new BrowserWindow({
-    width: 1200,
-    height: 700,
-    show: false,
-    autoHideMenuBar: true,
-    ...(process.platform === 'linux' ? { icon } : {}),
-    webPreferences: {
-      preload: join(__dirname, '../preload/index.js'),
-      sandbox: false,
-    },
-  })
-
-  mainWindow.on('ready-to-show', () => {
-    mainWindow.show()
-
-    tcp.connect(() => {
-      console.log('✨ Sensor Connected')
-      tcp.send(md.command.request)
+    app.whenReady().then(() => {
+      const win = this.createWindow()
+      this.addWindowEvents(win)
+      this.addGlobalShortcuts(win)
+      this.addMenuItems(win)
     })
 
-    tcp.listen((rawData) => {
-      const coord = md.getCoordinates(coordConverter, rawData)
-      mainWindow.webContents.send('response-data', coord)
+    this.addAppEvents()
 
-      // console.log('-------------------')
-      // console.log(coord)
-    })
-  })
-
-  // 外部ウィンドウのリンクを許可しない設定
-  mainWindow.webContents.setWindowOpenHandler((details) => {
-    shell.openExternal(details.url)
-    return { action: 'deny' }
-  })
-
-  // 開発用のURLを読み込むか、本番用のファイルを読み込む（このprocess.envは.envファイルで定義する、、？）
-  if (is.dev && process.env['ELECTRON_RENDERER_URL']) {
-    mainWindow.loadURL(process.env['ELECTRON_RENDERER_URL'])
-  } else {
-    mainWindow.loadFile(join(__dirname, '../renderer/index.html'))
+    // const buffer = fs.readFileSync(join(app.getAppPath(), 'README.md'))
+    // const data = buffer.toString('utf8')
+    // console.log(data)
   }
 
-  mainWindow.on('closed', () => {
-    tcp.disconnect(md.command.quit)
-  })
+  private createCoordinateConverter() {
+    return new HU.CoordinateConverter({
+      sensorPlacement: 'bottom-right',
+      sensorCoordinateFromCenter: [0.635, -0.368],
+      projectionAreaSize: [1, 0.7],
+      normalize: true,
+      bunch: true,
+      bunchEps: 0.05,
+      bunchPrecisionCount: 3,
+    })
+  }
 
-  return mainWindow
+  private addAppEvents() {
+    app.on('window-all-closed', () => {
+      if (process.platform !== 'darwin') {
+        app.quit()
+      }
+    })
+  }
+
+  private createWindow() {
+    const win = new BrowserWindow({
+      width: 1200,
+      height: 700,
+      show: false,
+      // autoHideMenuBar: true,
+      ...(process.platform === 'linux' ? { icon } : {}),
+      webPreferences: {
+        preload: join(__dirname, '../preload/index.js'),
+        sandbox: false,
+      },
+    })
+
+    win.webContents.setWindowOpenHandler((details) => {
+      shell.openExternal(details.url)
+      return { action: 'deny' }
+    })
+
+    if (is.dev && process.env['ELECTRON_RENDERER_URL']) {
+      win.loadURL(process.env['ELECTRON_RENDERER_URL'])
+    } else {
+      win.loadFile(join(__dirname, '../renderer/index.html'))
+    }
+
+    return win
+  }
+
+  private addWindowEvents(win: BrowserWindow) {
+    const { tcp, md, coordConverter } = this
+
+    win.on('ready-to-show', () => {
+      win.show()
+
+      tcp.connect(() => {
+        console.log('✨ Sensor Connected')
+        tcp.send(md.command.request)
+      })
+
+      tcp.listen((rawData) => {
+        const coord = md.getCoordinates(coordConverter, rawData)
+        win.webContents.send('response-data', coord)
+
+        // console.log('-------------------')
+        // console.log(coord)
+      })
+    })
+
+    win.on('closed', () => {
+      tcp.disconnect(md.command.quit)
+    })
+  }
+
+  private addGlobalShortcuts(win: BrowserWindow) {
+    globalShortcut.register('F5', () => win.reload())
+
+    globalShortcut.register('F9', () => win.setMenuBarVisibility(!win.isMenuBarVisible()))
+
+    globalShortcut.register('CommandOrControl+F12', () => {
+      if (win.webContents.isDevToolsOpened()) {
+        win.webContents.closeDevTools()
+      } else {
+        win.webContents.openDevTools()
+      }
+    })
+  }
+
+  private addMenuItems(win: BrowserWindow) {
+    const items: (MenuItemConstructorOptions | MenuItem)[] = [
+      {
+        label: 'Options',
+        submenu: [
+          {
+            label: 'marker view',
+            type: 'checkbox',
+            checked: true,
+            click: (e) => win.webContents.send('marker-view', e.checked),
+          },
+          {
+            label: 'sketch view',
+            type: 'checkbox',
+            checked: true,
+            click: (e) => win.webContents.send('sketch-view', e.checked),
+          },
+          {
+            type: 'separator',
+          },
+        ],
+      },
+    ]
+
+    const defMenuItems = Menu.getApplicationMenu()?.items
+    if (defMenuItems) items.unshift(...defMenuItems)
+
+    const menu = Menu.buildFromTemplate(items)
+    Menu.setApplicationMenu(menu)
+  }
 }
 
-// アプリケーションの準備ができたらウィンドウを作成する
-app.whenReady().then(() => {
-  const mainWindow = createWindow()
-
-  // add menu items
-  let items: (MenuItemConstructorOptions | MenuItem)[] = [
-    {
-      label: 'Options',
-      submenu: [
-        {
-          label: 'toggle marker',
-        },
-        {
-          label: 'toggle sketch',
-        },
-      ],
-    },
-  ]
-
-  const defMenuItems = Menu.getApplicationMenu()?.items
-  if (defMenuItems) items.unshift(...defMenuItems)
-
-  const menu = Menu.buildFromTemplate(items)
-  Menu.setApplicationMenu(menu)
-
-  // add globalShortcut
-  globalShortcut.register('F5', () => {
-    mainWindow.reload()
-  })
-  globalShortcut.register('CommandOrControl+F12', () => {
-    if (mainWindow.webContents.isDevToolsOpened()) {
-      mainWindow.webContents.closeDevTools()
-    } else {
-      mainWindow.webContents.openDevTools()
-    }
-  })
-  globalShortcut.register('F9', () => {
-    mainWindow.setMenuBarVisibility(!mainWindow.isMenuBarVisible())
-  })
-})
-
-// 全ウィンドウが閉じられたらプロセスを閉じる
-app.on('window-all-closed', () => {
-  if (process.platform !== 'darwin') {
-    app.quit()
-  }
-})
+new App()

@@ -13,6 +13,8 @@ if (process.contextIsolated) {
     contextBridge.exposeInMainWorld('api', api)
     contextBridge.exposeInMainWorld('electronAPI', {
       response: (callback) => ipcRenderer.on('response-data', (_event, value) => callback(value)),
+      visibledMarkerView: (callback) => ipcRenderer.on('marker-view', (_event, value) => callback(value)),
+      visibledSketchView: (callback) => ipcRenderer.on('sketch-view', (_event, value) => callback(value)),
     })
   } catch (error) {
     console.error(error)
