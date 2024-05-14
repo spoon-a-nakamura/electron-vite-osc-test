@@ -1,4 +1,5 @@
 import { datas } from './datas'
+import { Fps } from './utils/Fps'
 
 class Marker {
   private markerEl: HTMLElement
@@ -7,8 +8,7 @@ class Marker {
   private sensorDotsContainer: HTMLElement
   private sensorDots: NodeListOf<HTMLElement>
   private animeId?: number
-  private prevTime = performance.now()
-  private fpsLogs: number[] = []
+  private fps: Fps
   visibleCallback?: () => void
   hiddenCallback?: () => void
 
@@ -23,6 +23,7 @@ class Marker {
     this.sensorDots = this.createSensorDots(100)
 
     this.addEvents()
+    this.fps = new Fps()
   }
 
   private createMarkerView() {
@@ -97,8 +98,7 @@ class Marker {
 
   hidden() {
     this.markerEl.classList.toggle('hidden', true)
-    this.fpsLogs.length = 0
-    this.prevTime = 0
+    this.fps.clear()
     this.hiddenCallback?.()
   }
 
@@ -110,51 +110,42 @@ class Marker {
     return num.toFixed(precision)
   }
 
-  private updateFps() {
-    const currentTime = performance.now()
-    const dt = currentTime - this.prevTime
-    this.prevTime = currentTime
-    if (0 < dt) {
-      this.fpsLogs.push(1000 / dt)
-      if (20 < this.fpsLogs.length) this.fpsLogs.shift()
-      const avgFps = this.fpsLogs.reduce((p, c) => p + c) / this.fpsLogs.length
-      this.logFPS.innerText = avgFps.toFixed(0)
-    }
-  }
-
   private update() {
     if (this.isHidden) {
       this.animeId && cancelAnimationFrame(this.animeId)
       return
     }
-    const id = requestAnimationFrame(this.update.bind(this))
 
     // update fps log
-    this.updateFps()
+    this.logFPS.innerText = this.fps.update().toFixed(0)
 
     const coords = datas.coordinates
-    if (!coords) return id
+    if (coords) {
+      // update coordinates log
+      let str = ''
+      for (const coord of coords) {
+        str += this.fixed(coord[0]) + ', ' + this.fixed(coord[1]) + '\n'
+      }
+      this.logCoords.innerText = str
 
-    // update coordinates log
-    let str = ''
-    for (const coord of coords) {
-      str += this.fixed(coord[0]) + ', ' + this.fixed(coord[1]) + '\n'
-    }
-    this.logCoords.innerText = str
-
-    // update markers
-    for (let i = 0; i < this.sensorDots.length; i++) {
-      const dot = this.sensorDots[i]
-      if (i < coords.length) {
-        dot.classList.remove('hidden')
-        dot.style.setProperty('--x', this.fixed(coords[i][0]))
-        dot.style.setProperty('--y', this.fixed(coords[i][1]))
-      } else {
+      // update markers
+      for (let i = 0; i < this.sensorDots.length; i++) {
+        const dot = this.sensorDots[i]
+        if (i < coords.length) {
+          dot.classList.remove('hidden')
+          dot.style.setProperty('--x', this.fixed(coords[i][0]))
+          dot.style.setProperty('--y', this.fixed(coords[i][1]))
+        } else {
+          dot.classList.add('hidden')
+        }
+      }
+    } else {
+      for (const dot of this.sensorDots) {
         dot.classList.add('hidden')
       }
     }
 
-    return id
+    return requestAnimationFrame(this.update.bind(this))
   }
 }
 
