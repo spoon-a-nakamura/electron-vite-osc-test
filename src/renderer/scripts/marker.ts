@@ -9,6 +9,8 @@ class Marker {
   private animeId?: number
   private prevTime = performance.now()
   private fpsLogs: number[] = []
+  visibleCallback?: () => void
+  hiddenCallback?: () => void
 
   constructor() {
     this.createMarkerView()
@@ -19,11 +21,14 @@ class Marker {
     this.sensorDotsContainer = this.markerEl.querySelector<HTMLElement>('.sensor-dots')!
 
     this.sensorDots = this.createSensorDots(100)
+
+    this.addEvents()
   }
 
   private createMarkerView() {
-    document.body.innerHTML = `
-      ${document.body.innerHTML}
+    const main = document.querySelector<HTMLElement>('main')!
+    main.innerHTML = `
+      ${main.innerHTML}
 
       <div class="marker hidden">
         <div class="rulers">
@@ -77,15 +82,24 @@ class Marker {
     return this.sensorDotsContainer.querySelectorAll<HTMLElement>('span')
   }
 
+  private addEvents() {
+    window.electronAPI.visibledMarkerView((visibled) => {
+      if (visibled) this.visible()
+      else this.hidden()
+    })
+  }
+
   visible() {
     this.markerEl.classList.toggle('hidden', false)
     this.animeId = this.update()
+    this.visibleCallback?.()
   }
 
   hidden() {
     this.markerEl.classList.toggle('hidden', true)
     this.fpsLogs.length = 0
     this.prevTime = 0
+    this.hiddenCallback?.()
   }
 
   private get isHidden() {

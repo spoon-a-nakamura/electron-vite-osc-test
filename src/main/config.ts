@@ -5,6 +5,7 @@ import type { SensorPlacement } from './HokuyoUtils/scip/CoordinateConverter'
 export type AppConfig = {
   app: {
     window_size: [number, number]
+    auto_hide_menubar: boolean
     renderer_file: string
     visibled_marker: boolean
     visibled_sketch: boolean

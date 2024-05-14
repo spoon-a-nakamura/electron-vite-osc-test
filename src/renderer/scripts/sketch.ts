@@ -1,27 +1,27 @@
-import { Canvas } from './webgl/Canvas'
-
 class Sketch {
   private readonly sketchEl = document.querySelector<HTMLElement>('.sketch')!
-  private canvas?: Canvas
+  visibleCallback?: () => void
+  hiddenCallback?: () => void
 
   constructor() {
-    this.canvas = this.createCanvas()
+    this.addEvents()
   }
 
-  private createCanvas() {
-    const canvas = this.sketchEl.querySelector<HTMLCanvasElement>('canvas')
-    if (canvas) return new Canvas(canvas)
-    return
+  private addEvents() {
+    window.electronAPI.visibledSketchView((visibled) => {
+      if (visibled) this.visible()
+      else this.hidden()
+    })
   }
 
   visible() {
     this.sketchEl.classList.remove('hidden')
-    this.canvas?.startRendering()
+    this.visibleCallback?.()
   }
 
   hidden() {
     this.sketchEl.classList.add('hidden')
-    this.canvas?.stopRendering()
+    this.hiddenCallback?.()
   }
 }
 

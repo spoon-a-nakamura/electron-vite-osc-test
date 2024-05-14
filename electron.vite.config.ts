@@ -1,5 +1,7 @@
 import { defineConfig, externalizeDepsPlugin } from 'electron-vite'
+import { resolve } from 'path'
 import glsl from 'vite-plugin-glsl'
+import tsconfigPaths from 'vite-tsconfig-paths'
 
 export default defineConfig({
   main: {
@@ -9,6 +11,12 @@ export default defineConfig({
     plugins: [externalizeDepsPlugin()],
   },
   renderer: {
-    plugins: [glsl()],
+    plugins: [tsconfigPaths(), glsl()],
+    root: './src/renderer',
+    build: {
+      rollupOptions: {
+        input: [resolve(__dirname, './src/renderer/index.html'), resolve(__dirname, './src/renderer/examples/ripple/index.html')],
+      },
+    },
   },
 })

@@ -53,7 +53,7 @@ class App {
       width: this.cnf.app.window_size[0],
       height: this.cnf.app.window_size[1],
       show: false,
-      // autoHideMenuBar: true,
+      autoHideMenuBar: this.cnf.app.auto_hide_menubar,
       ...(process.platform === 'linux' ? { icon } : {}),
       webPreferences: {
         preload: join(__dirname, '../preload/index.js'),

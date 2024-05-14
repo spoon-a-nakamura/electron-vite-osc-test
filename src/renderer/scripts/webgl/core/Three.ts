@@ -9,7 +9,6 @@ export abstract class Three {
   protected readonly clock: THREE.Clock
   private _stats?: Stats
   private _controls?: OrbitControls
-  protected focusWindow = true
   private abortController?: AbortController
 
   constructor(canvas: HTMLCanvasElement) {
