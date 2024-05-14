@@ -3,7 +3,7 @@ import { BackBuffer } from '@scripts/webgl/core/BackBuffer'
 import { RawShaderMaterial } from '@scripts/webgl/core/ExtendedMaterials'
 import vertexShader from './shader/quad.vs'
 import fragmentShader from './shader/simulator.fs'
-import { mouse } from '@scripts/mouse'
+// import { mouse } from '@scripts/mouse'
 import { IdentifiedCoord, datas } from '@scripts/datas'
 import { lerp, map } from '@scripts/utils/math'
 
