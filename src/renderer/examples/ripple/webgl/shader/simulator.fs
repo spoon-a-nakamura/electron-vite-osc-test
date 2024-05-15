@@ -1,11 +1,15 @@
 #version 300 es
 precision highp float;
 
+struct Interaction {
+  vec2 coord;
+  float speed;
+};
+
 uniform sampler2D uBackBuffer;
 uniform vec2 uResolution;
 uniform int uFrame;
-uniform vec2 uMouse;
-uniform float uSpeed;
+uniform Interaction[INTERACTION_COUNT] uInteractions;
 
 in vec2 vUv;
 out vec4 outColor;
@@ -27,8 +31,11 @@ void main() {
   velo *= 0.99;
 
   float height = center.x + velo;
-  float dist = max(1.0 - distance(suv * asp, uMouse * asp) * 30.0, 0.0);
-  height += dist * uSpeed * 2.0;
+
+  for (int i = 0; i < INTERACTION_COUNT; i++) {
+    Interaction inte = uInteractions[i];
+    height += max(1.0 - distance(suv * asp, inte.coord * asp) * 30.0, 0.0) * inte.speed * 2.0;
+  }
 
   outColor = vec4(height, velo, center.x, 0.0);
 }

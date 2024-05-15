@@ -1,14 +1,16 @@
 import { randomString } from './utils/random'
 
+export type Coord = [number, number]
+
 export type IdentifiedCoord = {
   id: string
-  coord: [number, number]
+  coord: Coord
 }
 
 class Datas {
   private esp = 0.05
 
-  coordinates: [number, number][] | null = null
+  coordinates: Coord[] | null = null
   identifiedCoordinates: IdentifiedCoord[] = []
 
   constructor() {
@@ -16,7 +18,7 @@ class Datas {
   }
 
   private listen() {
-    window.electronAPI.response((coords: [number, number][]) => {
+    window.electronAPI.response((coords: Coord[]) => {
       if (!coords || coords.length === 0) {
         this.coordinates = null
       } else {
@@ -26,7 +28,7 @@ class Datas {
     })
   }
 
-  private updateHistory(coords: [number, number][]) {
+  private updateHistory(coords: Coord[]) {
     const existIds: string[] = []
 
     for (const coord of coords) {
@@ -50,6 +52,10 @@ class Datas {
     }
 
     this.identifiedCoordinates = this.identifiedCoordinates.filter((his) => existIds.includes(his.id))
+  }
+
+  clone<T extends IdentifiedCoord | Coord>(coord: T) {
+    return structuredClone(coord)
   }
 }
 

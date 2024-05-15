@@ -12,7 +12,7 @@ export class Canvas extends Three {
   private fps: Fps
 
   constructor(canvas: HTMLCanvasElement) {
-    super(canvas)
+    super(canvas, { dpr: 1 })
 
     this.simulator = new Simulator(this.renderer)
     this.fps = new Fps()

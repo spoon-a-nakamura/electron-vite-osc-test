@@ -8,28 +8,32 @@ import { IdentifiedCoord, datas } from '@scripts/datas'
 import { lerp, map } from '@scripts/utils/math'
 
 export class Simulator extends BackBuffer {
-  private prevCoord: IdentifiedCoord = { id: '', coord: [0, 0] }
+  private static readonly INTERACTION_COUNT = 5
+
+  private prevCoords: IdentifiedCoord[] = []
 
   constructor(renderer: THREE.WebGLRenderer) {
     const { width, height } = renderer.domElement
-    // const dpr = renderer.getPixelRatio()
-    const dpr = 1.0
+    const dpr = renderer.getPixelRatio()
+
+    const interactions = [...Array(Simulator.INTERACTION_COUNT)].map(() => ({ coord: [0, 0], speed: 0 }))
+    const fs = fragmentShader.replaceAll('INTERACTION_COUNT', Simulator.INTERACTION_COUNT.toString())
 
     const material = new RawShaderMaterial({
       uniforms: {
         uBackBuffer: { value: null },
         uResolution: { value: [width * dpr, height * dpr] },
         uFrame: { value: 0 },
-        uSpeed: { value: 0 },
-        uMouse: { value: [0, 0] },
+        uInteractions: {
+          value: interactions,
+        },
       },
       vertexShader,
-      fragmentShader,
+      fragmentShader: fs,
       glslVersion: '300 es',
     })
 
     super(renderer, material, {
-      dpr,
       renderTargetOptions: {
         type: THREE.FloatType,
         generateMipmaps: false,
@@ -48,30 +52,34 @@ export class Simulator extends BackBuffer {
   }
 
   render(fps: number) {
-    let vel = [0, 0]
-    let pos = [...this.prevCoord.coord]
-    const continuousCoord = datas.identifiedCoordinates.find((ic) => ic.id === this.prevCoord.id)
-    if (continuousCoord) {
-      vel = [
-        continuousCoord.coord[0] - lerp(this.prevCoord.coord[0], continuousCoord.coord[0], 0.05),
-        continuousCoord.coord[1] - lerp(this.prevCoord.coord[1], continuousCoord.coord[1], 0.05),
-      ]
-      pos = [...continuousCoord.coord]
-    } else if (0 < datas.identifiedCoordinates.length) {
-      this.prevCoord = { ...datas.identifiedCoordinates[0] }
-      pos = [...this.prevCoord.coord]
+    const prevCoords: IdentifiedCoord[] = []
+
+    for (let i = 0; i < Simulator.INTERACTION_COUNT; i++) {
+      let vel = [0, 0]
+      let pos = [0, 0]
+
+      if (i < datas.identifiedCoordinates.length) {
+        const iCoord = datas.identifiedCoordinates[i]
+        const prev = this.prevCoords.find((p) => p.id === iCoord.id)
+        if (prev) {
+          vel = [iCoord.coord[0] - lerp(prev.coord[0], iCoord.coord[0], 0.05), iCoord.coord[1] - lerp(prev.coord[1], iCoord.coord[1], 0.05)]
+        }
+        pos = [...iCoord.coord]
+        prevCoords.push(datas.clone(iCoord))
+      }
+
+      this.uniforms.uInteractions.value[i].speed = Math.min(1, Math.hypot(...vel) * 10.0)
+      this.uniforms.uInteractions.value[i].coord = pos
     }
 
-    // const speed = Math.hypot(...mouse.lerp(0.05))
-    // this.uniforms.uSpeed.value = Math.min(speed * 10.0, 1)
-    // this.uniforms.uMouse.value = mouse.position
-    const speed = Math.hypot(...vel)
-    this.uniforms.uSpeed.value = Math.min(speed * 10.0, 1)
-    this.uniforms.uMouse.value = pos
+    this.prevCoords = prevCoords
+
+    // this.uniforms.uInteractions.value[0].speed = Math.min(1, Math.hypot(...mouse.lerp(0.05)) * 10.0)
+    // this.uniforms.uInteractions.value[0].coord = mouse.position
+
     this.uniforms.uFrame.value += 1
 
     const count = Math.max(1, Math.round(map(fps, 75, 120, 5, 3)))
-
     for (let i = 0; i < count; i++) {
       this.uniforms.uBackBuffer.value = this.backBuffer
       super.render()

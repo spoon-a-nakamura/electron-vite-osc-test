@@ -2,6 +2,11 @@ import * as THREE from 'three'
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js'
 import Stats from 'three/examples/jsm/libs/stats.module.js'
 
+type Options = {
+  dpr?: number
+  shadowMap?: boolean
+}
+
 export abstract class Three {
   readonly renderer: THREE.WebGLRenderer
   protected camera: THREE.PerspectiveCamera
@@ -11,7 +16,10 @@ export abstract class Three {
   private _controls?: OrbitControls
   private abortController?: AbortController
 
-  constructor(canvas: HTMLCanvasElement) {
+  constructor(
+    canvas: HTMLCanvasElement,
+    private options?: Options,
+  ) {
     this.renderer = this.createRenderer(canvas)
     this.camera = this.createCamera()
     this.scene = this.createScene()
@@ -23,8 +31,8 @@ export abstract class Three {
   private createRenderer(canvas: HTMLCanvasElement) {
     const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true })
     renderer.setSize(window.innerWidth, window.innerHeight)
-    renderer.setPixelRatio(Math.round(window.devicePixelRatio))
-    // renderer.shadowMap.enabled = true
+    renderer.setPixelRatio(Math.min(2, Math.round(this.options?.dpr ?? window.devicePixelRatio)))
+    renderer.shadowMap.enabled = this.options?.shadowMap ?? false
     return renderer
   }
 
