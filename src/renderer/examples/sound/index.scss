@@ -1,0 +1,24 @@
+.sketch {
+  display: grid;
+  place-items: center;
+
+  span {
+    position: absolute;
+    width: min(15vw, 15vh);
+    aspect-ratio: 1;
+    border-radius: 50%;
+    background: color-mix(in srgb, #000, transparent 50%);
+    transition: background 0.1s;
+    translate: calc(50vw * var(--x)) calc(50vh * var(--y) * -1);
+    display: grid;
+    place-items: center;
+    color: #fff;
+    font-size: 30px;
+    line-height: 0;
+    pointer-events: none;
+    user-select: none;
+    &.active {
+      background: color-mix(in srgb, #f00, transparent 50%);
+    }
+  }
+}

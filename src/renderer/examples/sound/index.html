@@ -1,0 +1,28 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <title>Electron</title>
+    <!-- https://developer.mozilla.org/en-US/docs/Web/HTTP/CSP -->
+    <meta
+      http-equiv="Content-Security-Policy"
+      content="worker-src blob: ;default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:"
+    />
+
+    <link href="../../styles/entry.scss" type="text/css" rel="stylesheet" />
+    <link href="./index.scss" type="text/css" rel="stylesheet" />
+    <script type="module" defer src="../../scripts/entry.ts"></script>
+    <script type="module" defer src="./index.ts"></script>
+  </head>
+
+  <body>
+    <main>
+      <div class="sketch">
+        <span style="--x: 0.7; --y: 0.5">G3</span>
+        <span style="--x: -0.7; --y: 0.1">G4</span>
+        <span style="--x: 0.3; --y: 0.1">G5</span>
+        <span style="--x: -0.3; --y: -0.8">G6</span>
+      </div>
+    </main>
+  </body>
+</html>
