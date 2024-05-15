@@ -4,21 +4,59 @@
 
   span {
     position: absolute;
-    width: min(15vw, 15vh);
+    width: min(25vw, 25vh);
     aspect-ratio: 1;
     border-radius: 50%;
-    background: color-mix(in srgb, #000, transparent 50%);
-    transition: background 0.1s;
+    // background: color-mix(in srgb, #fff, transparent 90%);
+    background: color-mix(in srgb, #fff, transparent 100%) url('./images/cat_1.png') no-repeat
+      center / contain;
+    padding-top: 60px;
+    transition: all 0.3s ease-in-out;
     translate: calc(50vw * var(--x)) calc(50vh * var(--y) * -1);
     display: grid;
     place-items: center;
     color: #fff;
+    color: transparent;
     font-size: 30px;
     line-height: 0;
     pointer-events: none;
     user-select: none;
     &.active {
-      background: color-mix(in srgb, #f00, transparent 50%);
+      background-color: color-mix(in srgb, rgb(0, 0, 0), transparent 95%);
+      scale: 1.4;
     }
+    @for $i from 1 through 6 {
+      &:nth-of-type(#{$i}) {
+        background-image: url('./images/cat_#{$i}.png');
+      }
+    }
+  }
+}
+.video {
+  display: grid;
+  place-items: center;
+  position: fixed;
+  z-index: -1;
+}
+.hue-background {
+  display: grid;
+  place-items: center;
+  position: fixed;
+  width: 100%;
+  height: 100vh;
+  z-index: -1;
+  background: linear-gradient(120deg, #fbdce0, #f3e9d2, #d3eaf2, #e0f7da, #f7e4f4);
+  background-size: 200% 200%;
+  animation: hueShift 30s infinite linear;
+}
+@keyframes hueShift {
+  0% {
+    filter: hue-rotate(0deg);
+  }
+  50% {
+    filter: hue-rotate(180deg);
+  }
+  100% {
+    filter: hue-rotate(360deg);
   }
 }
