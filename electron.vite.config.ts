@@ -15,7 +15,11 @@ export default defineConfig({
     root: './src/renderer',
     build: {
       rollupOptions: {
-        input: [resolve(__dirname, './src/renderer/index.html'), resolve(__dirname, './src/renderer/examples/ripple/index.html')],
+        input: [
+          resolve(__dirname, './src/renderer/index.html'),
+          resolve(__dirname, './src/renderer/examples/ripple/index.html'),
+          resolve(__dirname, './src/renderer/examples/rain/index.html'),
+        ],
       },
     },
   },
