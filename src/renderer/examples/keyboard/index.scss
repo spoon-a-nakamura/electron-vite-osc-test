@@ -1,0 +1,62 @@
+.sketch {
+  display: grid;
+  place-items: center;
+}
+
+.keyboard {
+  display: flex;
+  border: 2px solid;
+  border-radius: 10px;
+  overflow: hidden;
+  .octave {
+    position: relative;
+    width: 40vw;
+    display: flex;
+    span {
+      position: relative;
+      display: block;
+      width: calc(100% * 1 / 7);
+      aspect-ratio: 1 / 5;
+      border: 1px solid;
+
+      &.active {
+        &::before {
+          content: '';
+          z-index: 1;
+          position: absolute;
+          width: 100%;
+          height: 100%;
+          background: #f00;
+          opacity: 0.3;
+        }
+      }
+
+      &::after {
+        content: var(--note);
+        position: absolute;
+        bottom: 5%;
+        left: 50%;
+        translate: -50% 0;
+        font-size: 1.5em;
+      }
+
+      &.sharp {
+        position: absolute;
+        z-index: 2;
+        right: 0;
+        translate: 50% 0;
+        background: #000;
+        width: calc(100% * 0.6);
+        border-radius: 0 0 5px 5px;
+
+        &::after {
+          content: '';
+        }
+      }
+    }
+
+    + .octave {
+      border-left: 2px solid;
+    }
+  }
+}
