@@ -1,4 +1,4 @@
-import { datas } from './datas'
+import { sensor } from './sensor'
 import { Fps } from './utils/Fps'
 
 class Marker {
@@ -119,7 +119,7 @@ class Marker {
     // update fps log
     this.logFPS.innerText = this.fps.update().toFixed(0)
 
-    const coords = datas.coordinates
+    const coords = sensor.coords
     if (coords) {
       // update coordinates log
       let str = ''

@@ -4,7 +4,7 @@ import { RawShaderMaterial } from '@scripts/webgl/core/ExtendedMaterials'
 import vertexShader from './shader/quad.vs'
 import fragmentShader from './shader/simulator.fs'
 // import { mouse } from '@scripts/mouse'
-import { IdentifiedCoord, datas } from '@scripts/datas'
+import { IdentifiedCoord, sensor } from '@scripts/sensor'
 import { lerp, map } from '@scripts/utils/math'
 
 export class Simulator extends BackBuffer {
@@ -58,14 +58,14 @@ export class Simulator extends BackBuffer {
       let vel = [0, 0]
       let pos = [0, 0]
 
-      if (i < datas.identifiedCoordinates.length) {
-        const iCoord = datas.identifiedCoordinates[i]
+      if (i < sensor.identifiedCoords.length) {
+        const iCoord = sensor.identifiedCoords[i]
         const prev = this.prevCoords.find((p) => p.id === iCoord.id)
         if (prev) {
           vel = [iCoord.coord[0] - lerp(prev.coord[0], iCoord.coord[0], 0.05), iCoord.coord[1] - lerp(prev.coord[1], iCoord.coord[1], 0.05)]
         }
         pos = [...iCoord.coord]
-        prevCoords.push(datas.clone(iCoord))
+        prevCoords.push(sensor.clone(iCoord))
       }
 
       this.uniforms.uInteractions.value[i].speed = Math.min(1, Math.hypot(...vel) * 10.0)

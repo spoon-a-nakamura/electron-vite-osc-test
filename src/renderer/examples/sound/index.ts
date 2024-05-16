@@ -1,4 +1,4 @@
-import { datas } from '@scripts/datas'
+import { sensor } from '@scripts/sensor'
 // import { mouse } from '@scripts/mouse'
 import * as Tone from 'tone'
 
@@ -45,22 +45,26 @@ function anime() {
     circle.style.setProperty('--y', y.toString())
 
     //
-    if (datas.coordinates && 0 < datas.coordinates.length) {
-      // 接触判定
-      const rect = circle.getBoundingClientRect()
-      const nX = ((rect.x + rect.width * 0.5) / window.innerWidth) * 2.0 - 1.0
-      const nY = (1.0 - (rect.y + rect.height * 0.5) / window.innerHeight) * 2.0 - 1.0
-      const radius = (rect.width * 0.5) / (window.innerWidth * 0.5)
-      const aspect = window.innerWidth / window.innerHeight
-      // const distance = Math.hypot(mouse.position[0] - nX, (mouse.position[1] - nY) / aspect)
-      const distance = Math.hypot(datas.coordinates[0][0] - nX, (datas.coordinates[0][1] - nY) / aspect)
-      const inCircle = distance < radius
-      if (!inCircle) {
-        circle.classList.remove('active')
-      } else if (!circle.classList.contains('active')) {
-        circle.classList.add('active')
-        // 音を鳴らす
-        synth.triggerAttackRelease(circleData.note, '32n')
+    if (sensor.coords) {
+      for (const coord of sensor.coords) {
+        // 接触判定
+        const rect = circle.getBoundingClientRect()
+        const nX = ((rect.x + rect.width * 0.5) / window.innerWidth) * 2.0 - 1.0
+        const nY = (1.0 - (rect.y + rect.height * 0.5) / window.innerHeight) * 2.0 - 1.0
+        const radius = (rect.width * 0.5) / (window.innerWidth * 0.5)
+        const aspect = window.innerWidth / window.innerHeight
+        // const distance = Math.hypot(mouse.position[0] - nX, (mouse.position[1] - nY) / aspect)
+        const distance = Math.hypot(coord[0] - nX, (coord[1] - nY) / aspect)
+        const inCircle = distance < radius
+        if (!inCircle) {
+          // 非アクティブにする
+          circle.classList.remove('active')
+        } else if (!circle.classList.contains('active')) {
+          // 音を鳴らす
+          circle.classList.add('active')
+          synth.triggerAttackRelease(circleData.note, '32n')
+          break
+        }
       }
     } else {
       circle.classList.remove('active')

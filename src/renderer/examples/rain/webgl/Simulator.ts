@@ -3,8 +3,8 @@ import { RawShaderMaterial } from '@scripts/webgl/core/ExtendedMaterials'
 import * as THREE from 'three'
 import vertexShader from './shader/quad.vs'
 import fragmentShader from './shader/simulator.fs'
-import { mouse } from '@scripts/mouse'
-import { datas } from '@scripts/datas'
+// import { mouse } from '@scripts/mouse'
+import { sensor } from '@scripts/sensor'
 
 export class Simulator extends BackBuffer {
   constructor(renderer: THREE.WebGLRenderer, size: [number, number]) {
@@ -44,8 +44,8 @@ export class Simulator extends BackBuffer {
     this.uniforms.uBackBuffer.value = this.backBuffer
     this.uniforms.uDeltaTime.value = dt
 
-    if (datas.coordinates && 0 < datas.coordinates.length) {
-      this.uniforms.uMouse.value = datas.coordinates[0]
+    if (sensor.coords) {
+      this.uniforms.uMouse.value = sensor.coords[0]
     } else {
       this.uniforms.uMouse.value = [2, 2]
     }

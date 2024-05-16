@@ -1,0 +1,64 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <title>Electron</title>
+    <!-- https://developer.mozilla.org/en-US/docs/Web/HTTP/CSP -->
+    <meta
+      http-equiv="Content-Security-Policy"
+      content="worker-src blob: ;default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:"
+    />
+
+    <link href="../../styles/entry.scss" type="text/css" rel="stylesheet" />
+    <link href="./index.scss" type="text/css" rel="stylesheet" />
+    <script type="module" defer src="../../scripts/entry.ts"></script>
+    <script type="module" defer src="./index.ts"></script>
+  </head>
+
+  <body>
+    <main>
+      <div class="sketch">
+        <div class="keyboard">
+          <div class="octave" data-octave="4">
+            <span data-note="C">
+              <span class="sharp"></span>
+            </span>
+            <span data-note="D">
+              <span class="sharp"></span>
+            </span>
+            <span data-note="E"></span>
+            <span data-note="F">
+              <span class="sharp"></span>
+            </span>
+            <span data-note="G">
+              <span class="sharp"></span>
+            </span>
+            <span data-note="A">
+              <span class="sharp"></span>
+            </span>
+            <span data-note="B"></span>
+          </div>
+          <div class="octave" data-octave="5">
+            <span data-note="C">
+              <span class="sharp"></span>
+            </span>
+            <span data-note="D">
+              <span class="sharp"></span>
+            </span>
+            <span data-note="E"></span>
+            <span data-note="F">
+              <span class="sharp"></span>
+            </span>
+            <span data-note="G">
+              <span class="sharp"></span>
+            </span>
+            <span data-note="A">
+              <span class="sharp"></span>
+            </span>
+            <span data-note="B"></span>
+          </div>
+        </div>
+      </div>
+    </main>
+  </body>
+</html>

@@ -20,6 +20,7 @@ export default defineConfig({
           resolve(__dirname, './src/renderer/examples/ripple/index.html'),
           resolve(__dirname, './src/renderer/examples/rain/index.html'),
           resolve(__dirname, './src/renderer/examples/sound/index.html'),
+          resolve(__dirname, './src/renderer/examples/keyboard/index.html'),
         ],
       },
     },
