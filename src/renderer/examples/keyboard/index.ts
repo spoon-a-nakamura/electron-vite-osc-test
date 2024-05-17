@@ -50,9 +50,9 @@ function touch(key: HTMLElement, coord: Coord) {
 }
 
 function anime() {
-  let hits: HTMLElement[] = []
-
   if (sensor.coords) {
+    let hits: HTMLElement[] = []
+
     for (const coord of sensor.coords) {
       // 検出点が鍵盤上にあるかどうか
       if (!inRect(keyboard, coord)) continue
@@ -79,10 +79,10 @@ function anime() {
         }
       }
     }
-  }
 
-  // 当たり判定がなかったキーは非活性状態にする
-  ;[...blackKeys, ...whiteKeys].forEach((key) => key.classList.toggle('active', hits.includes(key)))
+    // 当たり判定がなかったキーは非活性状態にする
+    ;[...blackKeys, ...whiteKeys].forEach((key) => key.classList.toggle('active', hits.includes(key)))
+  }
 
   requestAnimationFrame(anime)
 }

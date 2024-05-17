@@ -9,6 +9,10 @@ export type IdentifiedCoord = {
 
 class Sensor {
   private eps = 0.05 // [m]
+  /** 欠損したデータが何回連続で取得されたか */
+  private missingCount = 0
+  /** 空データが何回連続で取得されたか */
+  private emptyCount = 0
 
   coords: Coord[] | null = null
   identifiedCoords: IdentifiedCoord[] = []
@@ -18,12 +22,19 @@ class Sensor {
   }
 
   private listen() {
-    window.electronAPI.response((coords: Coord[]) => {
-      if (!coords || coords.length === 0) {
+    window.electronAPI.response((coords: Coord[] | null) => {
+      if (!coords) {
         this.coords = null
+        this.missingCount++
+      } else if (coords.length === 0) {
+        this.coords = []
+        this.identifiedCoords = []
+        this.emptyCount++
       } else {
         this.coords = [...coords]
         this.updateHistory(this.coords)
+        this.missingCount = 0
+        this.emptyCount = 0
       }
     })
   }
@@ -56,6 +67,22 @@ class Sensor {
 
   clone<T extends IdentifiedCoord | Coord>(coord: T) {
     return structuredClone(coord)
+  }
+
+  /**
+   * データが欠損しているかどうか
+   * @param lowCount 欠損データが何回連続で続いたかの下限値
+   */
+  isMissing(lowCount = 1) {
+    return lowCount <= this.missingCount
+  }
+
+  /**
+   * データが空かどうか
+   * @param lowCount 空データが何回連続で続いたかの下限値
+   */
+  isEmpty(lowCount = 1) {
+    return lowCount <= this.emptyCount
   }
 }
 

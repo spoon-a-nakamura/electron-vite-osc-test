@@ -45,9 +45,11 @@ export class Simulator extends BackBuffer {
     this.uniforms.uDeltaTime.value = dt
 
     if (sensor.coords) {
-      this.uniforms.uMouse.value = sensor.coords[0]
-    } else {
-      this.uniforms.uMouse.value = [2, 2]
+      if (0 < sensor.coords.length) {
+        this.uniforms.uMouse.value = sensor.coords[0]
+      } else {
+        this.uniforms.uMouse.value = [2, 2]
+      }
     }
 
     super.render()
