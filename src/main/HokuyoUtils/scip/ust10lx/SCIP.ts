@@ -90,48 +90,51 @@ export abstract class SCIP {
     return this.decoder.decode(buffer)
   }
 
-  /**
-   * 応答データから距離データを取得する
-   */
-  getDistances(buffer: Buffer) {
-    this.distances.length = 0
-    this.timestamp = 0
+  getDataLine(buffer: Buffer, updateTimeStamp = true) {
+    let dataLine: string | null = null
 
     const respLines = this.decodeBuffer(buffer).split('\n')
 
     if (respLines[0].startsWith(this.type) && (respLines[1].startsWith('00') || respLines[1].startsWith('99'))) {
-      this.timestamp = this.decode(respLines[2], 4)
+      if (updateTimeStamp) this.timestamp = this.decode(respLines[2], 4)
 
-      let dataLine = ''
+      dataLine = ''
       for (let i = 3; i < respLines.length; ++i) {
         dataLine += respLines[i].substring(0, respLines[i].length - 1)
       }
+    }
+
+    return dataLine
+  }
+
+  /**
+   * 応答データから距離データを取得する
+   * @return 距離データ｜null（データが欠損している）
+   */
+  getDistances(buffer: Buffer) {
+    this.distances.length = 0
+
+    const dataLine = this.getDataLine(buffer)
+    if (dataLine) {
       this.decodeArray(dataLine, this.dataSize, this.distances)
     }
 
-    return this.distances
+    return dataLine ? this.distances : null
   }
 
   /**
    * 応答データからデコードした距離データを、スクリーン座標（画面中央を原点とする-1~1の座標系）で返す
+   * @return 正規化スクリーン座標｜null（データが欠損している）
    */
   getCoordinates(converter: CoordinateConverter, buffer: Buffer) {
     this.coordinates.length = 0
-    this.timestamp = 0
 
-    const respLines = this.decoder.decode(buffer).split('\n')
-
-    if (respLines[0].startsWith(this.type) && (respLines[1].startsWith('00') || respLines[1].startsWith('99'))) {
-      this.timestamp = this.decode(respLines[2], 4)
-
-      let dataLine = ''
-      for (let i = 3; i < respLines.length; ++i) {
-        dataLine += respLines[i].substring(0, respLines[i].length - 1)
-      }
+    const dataLine = this.getDataLine(buffer)
+    if (dataLine) {
       this.decodeArrayToCoord(converter, dataLine, this.dataSize, this.coordinates)
     }
 
-    return this.coordinates
+    return dataLine ? this.coordinates : null
   }
 
   private decodeArray(data: string, size: number, results: number[]) {

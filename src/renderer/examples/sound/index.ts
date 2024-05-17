@@ -45,7 +45,7 @@ function anime() {
     circle.style.setProperty('--y', y.toString())
 
     //
-    if (sensor.coords) {
+    if (sensor.coords && 0 < sensor.coords.length) {
       for (const coord of sensor.coords) {
         // 接触判定
         const rect = circle.getBoundingClientRect()
