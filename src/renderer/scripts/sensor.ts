@@ -71,7 +71,7 @@ class Sensor {
 
   /**
    * データが欠損しているかどうか
-   * @param lowCount 欠損データが何回連続で続いたかの下限値
+   * @param lowCount 欠損データが何回連続で続いたかの下限値 [def: 1]
    */
   isMissing(lowCount = 1) {
     return lowCount <= this.missingCount
@@ -79,7 +79,7 @@ class Sensor {
 
   /**
    * データが空かどうか
-   * @param lowCount 空データが何回連続で続いたかの下限値
+   * @param lowCount 空データが何回連続で続いたかの下限値 [def: 1]
    */
   isEmpty(lowCount = 1) {
     return lowCount <= this.emptyCount
