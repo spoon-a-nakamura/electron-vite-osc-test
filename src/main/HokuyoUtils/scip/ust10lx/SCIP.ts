@@ -90,23 +90,6 @@ export abstract class SCIP {
     return this.decoder.decode(buffer)
   }
 
-  getDataLine(buffer: Buffer, updateTimeStamp = true) {
-    let dataLine: string | null = null
-
-    const respLines = this.decodeBuffer(buffer).split('\n')
-
-    if (respLines[0].startsWith(this.type) && (respLines[1].startsWith('00') || respLines[1].startsWith('99'))) {
-      if (updateTimeStamp) this.timestamp = this.decode(respLines[2], 4)
-
-      dataLine = ''
-      for (let i = 3; i < respLines.length; ++i) {
-        dataLine += respLines[i].substring(0, respLines[i].length - 1)
-      }
-    }
-
-    return dataLine
-  }
-
   /**
    * 応答データから距離データを取得する
    * @return 距離データ｜null（データが欠損している）
@@ -135,6 +118,23 @@ export abstract class SCIP {
     }
 
     return dataLine ? this.coordinates : null
+  }
+
+  private getDataLine(buffer: Buffer, updateTimeStamp = true) {
+    let dataLine: string | null = null
+
+    const respLines = this.decodeBuffer(buffer).split('\n')
+
+    if (respLines[0].startsWith(this.type) && (respLines[1].startsWith('00') || respLines[1].startsWith('99'))) {
+      if (updateTimeStamp) this.timestamp = this.decode(respLines[2], 4)
+
+      dataLine = ''
+      for (let i = 3; i < respLines.length; ++i) {
+        dataLine += respLines[i].substring(0, respLines[i].length - 1)
+      }
+    }
+
+    return dataLine
   }
 
   private decodeArray(data: string, size: number, results: number[]) {
