@@ -92,7 +92,6 @@ export abstract class SCIP {
 
   getDataLine(buffer: Buffer, updateTimeStamp = true) {
     let dataLine: string | null = null
-    if (updateTimeStamp) this.timestamp = 0
 
     const respLines = this.decodeBuffer(buffer).split('\n')
 
