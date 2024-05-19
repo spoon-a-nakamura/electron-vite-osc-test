@@ -4,10 +4,7 @@
     <meta charset="UTF-8" />
     <title>Color Change Example</title>
     <!-- https://developer.mozilla.org/en-US/docs/Web/HTTP/CSP -->
-    <meta
-      http-equiv="Content-Security-Policy"
-      content="worker-src blob: ;default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:"
-    />
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com;">
 
     <link href="../../styles/entry.scss" type="text/css" rel="stylesheet" />
     <link href="./index.scss" type="text/css" rel="stylesheet" />
@@ -15,6 +12,7 @@
     <script type="module" defer src="./index.ts"></script>
   </head>
   <body>
-    
+    <div class="color-name"></div>
+    <div class="color-burst"></div>
   </body>
 </html>
