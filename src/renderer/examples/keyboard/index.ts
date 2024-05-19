@@ -39,12 +39,28 @@ function inRect(el: HTMLElement, coord: Coord) {
   return top_left[0] < coord[0] && coord[0] < bottom_right[0] && bottom_right[1] < coord[1] && coord[1] < top_left[1]
 }
 
+const debounceTime = 500; // デバウンス時間（ミリ秒）
+const lastPressed: WeakMap<HTMLElement, number> = new WeakMap()
+
 function touch(key: HTMLElement, coord: Coord) {
+  const now = Date.now()
+  const lastTime = lastPressed.get(key) || 0
+
+  const isHit = inRect(key, coord)
+  if (isHit && !key.classList.contains('active')) {
+    if (now - lastTime >= debounceTime) {
+      // 音を鳴らす
+      synth.triggerAttackRelease(noteMap.get(key)!, '32n')
+      lastPressed.set(key, now)
+    }
+  }
+  return isHit ? key : null
+}
+
+function cssTouch(key: HTMLElement, coord: Coord) {
   const isHit = inRect(key, coord)
   if (isHit && !key.classList.contains('active')) {
     key.classList.add('active')
-    // 音を鳴らす
-    synth.triggerAttackRelease(noteMap.get(key)!, '32n')
   }
   return isHit ? key : null
 }
@@ -62,28 +78,25 @@ function anime() {
       // 黒鍵
       for (const key of blackKeys) {
         hit = touch(key, coord)
-        if (hit) {
-          hits.push(hit)
-          break
-        }
+        cssTouch(key, coord)
+        if (hit) break
       }
-
       // 白鍵
       if (!hit) {
         for (const key of whiteKeys) {
           hit = touch(key, coord)
-          if (hit) {
-            hits.push(hit)
-            break
-          }
+          cssTouch(key, coord)
+          if (hit) break
         }
       }
+      if (hit) hits.push(hit)
     }
 
-    // 当たり判定がなかったキーは非活性状態にする
-    ;[...blackKeys, ...whiteKeys].forEach((key) => key.classList.toggle('active', hits.includes(key)))
+    // 現在のヒット状態を反映
+    for (const key of keyboard.querySelectorAll('.active')) {
+      if (!hits.includes(key)) key.classList.remove('active')
+    }
   }
-
   requestAnimationFrame(anime)
 }
 
