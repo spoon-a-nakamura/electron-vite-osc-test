@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/explicit-function-return-type */
 import * as Tone from 'tone'
 import { Coord, sensor } from '@scripts/sensor'
 
@@ -12,7 +13,7 @@ const keyboard = document.querySelector<HTMLElement>('.keyboard')!
 for (const octaveEl of keyboard.querySelectorAll<HTMLElement>('.octave')) {
   const octave = octaveEl.dataset.octave!
 
-  for (const key of octaveEl.querySelectorAll<HTMLElement>('& > span')) {
+  for (const key of octaveEl.querySelectorAll<HTMLElement>('span')) {
     const note = key.dataset.note!
     const n = note + octave
     key.style.setProperty('--note', `"${n}"`)
@@ -36,10 +37,15 @@ function inRect(el: HTMLElement, coord: Coord) {
   const top_left = [cx - width / 2, cy + height / 2]
   const bottom_right = [cx + width / 2, cy - height / 2]
 
-  return top_left[0] < coord[0] && coord[0] < bottom_right[0] && bottom_right[1] < coord[1] && coord[1] < top_left[1]
+  return (
+    top_left[0] < coord[0] &&
+    coord[0] < bottom_right[0] &&
+    bottom_right[1] < coord[1] &&
+    coord[1] < top_left[1]
+  )
 }
 
-const debounceTime = 500; // デバウンス時間（ミリ秒）
+const debounceTime = 500 // デバウンス時間（ミリ秒）
 const lastPressed: WeakMap<HTMLElement, number> = new WeakMap()
 
 function touch(key: HTMLElement, coord: Coord) {
@@ -66,8 +72,10 @@ function cssTouch(key: HTMLElement, coord: Coord) {
 }
 
 function anime() {
-  if (sensor.coords) {
-    let hits: HTMLElement[] = []
+  const now = Date.now()
+
+  if (sensor.coords && sensor.coords.length > 0) {
+    const hits: HTMLElement[] = []
 
     for (const coord of sensor.coords) {
       // 検出点が鍵盤上にあるかどうか
@@ -97,6 +105,7 @@ function anime() {
       if (!hits.includes(key)) key.classList.remove('active')
     }
   }
+
   requestAnimationFrame(anime)
 }
 
