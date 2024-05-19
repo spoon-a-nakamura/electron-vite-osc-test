@@ -95,16 +95,36 @@ function getRandomAngle() {
 // 現在の色を記憶
 let currentColorIndex = getRandomIndex()
 
-// 処理させたいHTML要素
-const colorNameElement = document.querySelector('.color-name') as HTMLElement
-const colorBurstElement = document.querySelector('.color-burst') as HTMLElement
+// HTML要素たち
+const coverScreen = document.querySelector<HTMLElement>('.cover-screen')
+const mainContent = document.querySelector<HTMLElement>('.main-content')
+const colorNameElement = document.querySelector<HTMLElement>('.color-name')
+const colorBurstElement = document.querySelector<HTMLElement>('.color-burst')
 
-// 初期色の設定
-if (colorNameElement) {
-  const initialColor = colors[currentColorIndex]
-  const initialGradient = gradientColors[initialColor]
-  document.body.style.background = initialGradient
-  colorNameElement.innerText = colorNames[initialColor]
+// カバーを外してスタートする処理
+function removeCoverScreen() {
+  gsap.to(coverScreen, {
+    duration: 1,
+    opacity: 0,
+    ease: 'power2.inOut',
+    onComplete: () => {
+      coverScreen && coverScreen.remove()
+    }
+  })
+
+  if (coverScreen && mainContent && colorNameElement) {
+    gsap.fromTo(
+      mainContent,
+      { opacity: 0 },
+      { opacity: 1, duration: 1, delay: 0.5, ease: 'power2.inOut' }
+    )
+
+    // 初期表示の色定義
+    const initialColor = colors[currentColorIndex]
+    const initialGradient = gradientColors[initialColor]
+    document.body.style.background = initialGradient
+    colorNameElement.innerText = colorNames[initialColor]
+  }
 }
 
 // 手が触れているタイミングで次の色に進まないように、センサーのデバウンス処理
@@ -123,7 +143,10 @@ function changeColor() {
   currentColorIndex = newColorIndex
   const newColor = colors[currentColorIndex]
   const newGradient = gradientColors[newColor]
-  document.body.style.background = newGradient
+
+  if (mainContent) {
+    mainContent.style.background = newGradient
+  }
 
   if (colorNameElement) {
     colorNameElement.innerText = colorNames[newColor]
@@ -158,6 +181,7 @@ function changeColor() {
 }
 
 // センサーと描画の連動処理
+let coverScreenRemoved = false
 function anime() {
   const now = Date.now()
 
@@ -167,6 +191,10 @@ function anime() {
       if (now - lastSensorTime >= debounceTime) {
         lastSensorTime = now
         colorChangeRequested = true
+        if (!coverScreenRemoved) {
+          removeCoverScreen()
+          coverScreenRemoved = true
+        }
       }
     }
   } else {
