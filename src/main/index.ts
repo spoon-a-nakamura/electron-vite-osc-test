@@ -1,10 +1,11 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 import { is } from '@electron-toolkit/utils'
-import { BrowserWindow, Menu, MenuItem, MenuItemConstructorOptions, app, globalShortcut, shell } from 'electron'
+import { BrowserWindow, Menu, MenuItem, MenuItemConstructorOptions, app, desktopCapturer, globalShortcut, shell } from 'electron'
 import { join } from 'path'
 import icon from '../../resources/icon.png?asset'
 import * as HU from './HokuyoUtils'
 import { AppConfig, readAppConfig } from './config'
+import { acceptAudio } from './device'
 
 class App {
   private readonly cnf: AppConfig
@@ -66,16 +67,14 @@ class App {
       return { action: 'deny' }
     })
 
-    new Promise(async (resolve) => {
-      if (is.dev && process.env['ELECTRON_RENDERER_URL']) {
-        await win.loadURL(`${process.env['ELECTRON_RENDERER_URL']}/${this.cnf.app.renderer_file}`)
-      } else {
-        await win.loadFile(join(__dirname, `../renderer/${this.cnf.app.renderer_file}`))
-      }
-      resolve(null)
-    }).then(() => {
-      this.initRenderer(win)
-    })
+    // rendererファイルの読み込み
+    if (is.dev && process.env['ELECTRON_RENDERER_URL']) {
+      win.loadURL(`${process.env['ELECTRON_RENDERER_URL']}/${this.cnf.app.renderer_file}`)
+    } else {
+      win.loadFile(join(__dirname, `../renderer/${this.cnf.app.renderer_file}`))
+    }
+
+    acceptAudio(win)
 
     return win
   }
@@ -102,6 +101,11 @@ class App {
 
     win.on('closed', () => {
       tcp.disconnect(md.command.quit)
+    })
+
+    win.webContents.on('did-finish-load', () => {
+      // rendererの初期設定をする
+      this.initRenderer(win)
     })
   }
 
