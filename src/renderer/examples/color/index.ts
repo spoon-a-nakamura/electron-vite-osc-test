@@ -64,22 +64,22 @@ const gradientColors = {
 
 // 色が表示された際に再生される音声ファイル
 const audioFiles = {
-  black: new Audio('./voice/akifumi/black.m4a'),
-  silver: new Audio('./voice/akifumi/silver.m4a'),
-  gray: new Audio('./voice/akifumi/gray.m4a'),
-  white: new Audio('./voice/akifumi/white.m4a'),
-  maroon: new Audio('./voice/akifumi/maroon.m4a'),
+  black: new Audio('./voice/nagisa/black.m4a'),
+  silver: new Audio('./voice/nagisa/silver.m4a'),
+  gray: new Audio('./voice/nagisa/gray.m4a'),
+  white: new Audio('./voice/nagisa/white.m4a'),
+  maroon: new Audio('./voice/nagisa/maroon.m4a'),
   red: new Audio('./voice/nagisa/red.m4a'),
-  purple: new Audio('./voice/akifumi/purple.m4a'),
-  fuchsia: new Audio('./voice/akifumi/fuchsia.m4a'),
-  green: new Audio('./voice/akifumi/green.m4a'),
-  lime: new Audio('./voice/akifumi/lime.m4a'),
-  olive: new Audio('./voice/akifumi/olive.m4a'),
+  purple: new Audio('./voice/nagisa/purple.m4a'),
+  fuchsia: new Audio('./voice/nagisa/fuchsia.m4a'),
+  green: new Audio('./voice/nagisa/green.m4a'),
+  lime: new Audio('./voice/nagisa/lime.m4a'),
+  olive: new Audio('./voice/nagisa/olive.m4a'),
   yellow: new Audio('./voice/nagisa/yellow.m4a'),
-  navy: new Audio('./voice/akifumi/navy.m4a'),
+  navy: new Audio('./voice/nagisa/navy.m4a'),
   blue: new Audio('./voice/nagisa/blue.m4a'),
-  teal: new Audio('./voice/akifumi/teal.m4a'),
-  aqua: new Audio('./voice/akifumi/aqua.m4a')
+  teal: new Audio('./voice/nagisa/teal.m4a'),
+  aqua: new Audio('./voice/nagisa/aqua.m4a')
 }
 
 // ランダムなインデックスを生成する関数
